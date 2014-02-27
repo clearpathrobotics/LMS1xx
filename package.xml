@@ -4,6 +4,7 @@
   <version>0.0.1</version>
   <description>The lms1xx package contains a basic ROS driver for the SICK LMS1xx line of LIDARs.</description>
 
+  <author>Konrad Banachowicz</author>
   <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>
 
   <license>LGPL</license>

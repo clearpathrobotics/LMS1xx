@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(LMS1xx)
+project(lms1xx)
 
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
 

@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2014-08-18)
+------------------
 * Changed the pkg and name so that the launch file is able to find the package.
 * Fix assignment in if() to comparison.
 * Contributors: Jeff Schmidt, Mike Purvis

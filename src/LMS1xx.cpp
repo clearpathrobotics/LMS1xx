@@ -182,6 +182,20 @@ void LMS1xx::setScanDataCfg(const scanDataCfg &cfg) {
 	buf[len - 1] = 0;
 }
 
+scanOutputRange LMS1xx::getScanOutputRange() const {
+	scanOutputRange outputRange;
+	char buf[100];
+	sprintf(buf, "%c%s%c", 0x02, "sRN LMPoutputRange", 0x03);
+
+	write(sockDesc, buf, strlen(buf));
+
+	int len = read(sockDesc, buf, 100);
+
+        sscanf(buf + 1, "%*s %*s %*d %X %X %X", &outputRange.angleResolution,
+               &outputRange.startAngle, &outputRange.stopAngle);
+	return outputRange;
+}
+
 void LMS1xx::scanContinous(int start) {
 	char buf[100];
 	sprintf(buf, "%c%s %d%c", 0x02, "sEN LMDscandata", start, 0x03);

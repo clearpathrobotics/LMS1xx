@@ -118,6 +118,31 @@ typedef struct _scanDataCfg {
 } scanDataCfg;
 
 /*!
+* @class outputRange
+* @brief Structure containing scan output range configuration
+*
+* @author wpd
+*/
+typedef struct _scanOutputRange {
+	/*!
+	 * @brief Scanning resolution.
+	 * 1/10000 degree
+	 */
+	int angleResolution;
+
+	/*!
+	 * @brief Start angle.
+	 * 1/10000 degree
+	 */
+	int startAngle;
+
+	/*!
+	 * @brief Stop angle.
+	 * 1/10000 degree
+	 */
+	int stopAngle;
+} scanOutputRange;
+/*!
 * @class scanData
 * @brief Structure containing single scan message.
 *
@@ -267,6 +292,16 @@ public:
 	* @param cfg structure containing scan data configuration.
 	*/
 	void setScanDataCfg(const scanDataCfg &cfg);
+
+	/*!
+	* @brief Get current output range configuration.
+	* Get output range configuration :
+	* - scanning resolution.
+	* - start angle.
+	* - stop angle.
+	* @returns scanOutputRange structure.
+	*/
+	scanOutputRange getScanOutputRange() const;
 
 	/*!
 	* @brief Start or stop continuous data acquisition.

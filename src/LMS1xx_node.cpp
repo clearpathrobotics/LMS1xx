@@ -11,6 +11,7 @@ int main(int argc, char **argv)
   // laser data
   LMS1xx laser;
   scanCfg cfg;
+  scanOutputRange outputRange;
   scanDataCfg dataCfg;
   scanData data;
   // published data
@@ -37,7 +38,14 @@ int main(int argc, char **argv)
 
     laser.login();
     cfg = laser.getScanCfg();
+    outputRange = laser.getScanOutputRange();
 
+#if 0
+    ROS_INFO("Laser configuration: scaningFrequency %d, angleResolution %d, startAngle %d, stopAngle %d",
+             cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle, cfg.stopAngle);
+    ROS_INFO("Laser output range:angleResolution %d, startAngle %d, stopAngle %d",
+             outputRange.angleResolution, outputRange.startAngle, outputRange.stopAngle);
+#endif
     scan_msg.header.frame_id = frame_id;
 
     scan_msg.range_min = 0.01;
@@ -45,29 +53,28 @@ int main(int argc, char **argv)
 
     scan_msg.scan_time = 100.0/cfg.scaningFrequency;
 
-    scan_msg.angle_increment = (double)cfg.angleResolution/10000.0 * DEG2RAD;
-    scan_msg.angle_min = (double)cfg.startAngle/10000.0 * DEG2RAD - M_PI/2;
-    scan_msg.angle_max = (double)cfg.stopAngle/10000.0 * DEG2RAD - M_PI/2;
+    scan_msg.angle_increment = (double)outputRange.angleResolution/10000.0 * DEG2RAD;
+    scan_msg.angle_min = (double)outputRange.startAngle/10000.0 * DEG2RAD - M_PI/2;
+    scan_msg.angle_max = (double)outputRange.stopAngle/10000.0 * DEG2RAD - M_PI/2;
 
-    std::cout << "resolution : " << (double)cfg.angleResolution/10000.0 << " deg " << std::endl;
+    std::cout << "resolution : " << (double)outputRange.angleResolution/10000.0 << " deg " << std::endl;
     std::cout << "frequency : " << (double)cfg.scaningFrequency/100.0 << " Hz " << std::endl;
 
-    int num_values;
-    if (cfg.angleResolution == 2500)
-    {
-      num_values = 1081;
-    }
-    else if (cfg.angleResolution == 5000)
-    {
-      num_values = 541;
-    }
-    else
-    {
-      ROS_ERROR("Unsupported resolution");
-      return 0;
+    int angle_range = outputRange.stopAngle - outputRange.startAngle;
+    int num_values = angle_range / outputRange.angleResolution ;
+    if (angle_range % outputRange.angleResolution == 0) {
+        // Include endpoint
+        ++num_values;
     }
 
-    scan_msg.time_increment = scan_msg.scan_time/num_values;
+    scan_msg.time_increment = 
+        (outputRange.angleResolution / 10000.0)
+        / 360.0
+        / (cfg.scaningFrequency / 100.0);
+
+#if 0
+    std::cout << "time increment : " << (double)scan_msg.time_increment << " seconds " << std::endl;
+#endif
 
     scan_msg.ranges.resize(num_values);
     scan_msg.intensities.resize(num_values);

@@ -190,12 +190,6 @@ scanOutputRange LMS1xx::getScanOutputRange() const {
 	write(sockDesc, buf, strlen(buf));
 
 	int len = read(sockDesc, buf, 100);
-	//	if (buf[0] != 0x02)
-	//		std::cout << "invalid packet recieved" << std::endl;
-	//	if (debug) {
-	//		buf[len] = 0;
-	//		std::cout << buf << std::endl;
-	//	}
 
         sscanf(buf + 1, "%*s %*s %*d %X %X %X", &outputRange.angleResolution,
                &outputRange.startAngle, &outputRange.stopAngle);

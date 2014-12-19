@@ -102,7 +102,7 @@ typedef struct _scanDataCfg {
 	 * Determines whether the device name is to be output.
 	 */
 	bool deviceName;
-	
+
 	bool timestamp;
 
 	/*!
@@ -332,7 +332,6 @@ public:
 
 private:
 	bool connected;
-	bool debug;
 
 	int sockDesc;
 };

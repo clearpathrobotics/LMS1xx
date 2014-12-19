@@ -16,6 +16,7 @@ int main(int argc, char **argv)
   scanData data;
   // published data
   sensor_msgs::LaserScan scan_msg;
+
   // parameters
   std::string host;
   std::string frame_id;
@@ -27,8 +28,8 @@ int main(int argc, char **argv)
 
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
+  ROS_INFO("Connecting to laser at : %s", host.c_str());
 
-  ROS_INFO("connecting to laser at : %s", host.c_str());
   // initialize hardware
   laser.connect(host);
 
@@ -40,12 +41,11 @@ int main(int argc, char **argv)
     cfg = laser.getScanCfg();
     outputRange = laser.getScanOutputRange();
 
-#if 0
-    ROS_INFO("Laser configuration: scaningFrequency %d, angleResolution %d, startAngle %d, stopAngle %d",
-             cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle, cfg.stopAngle);
-    ROS_INFO("Laser output range:angleResolution %d, startAngle %d, stopAngle %d",
-             outputRange.angleResolution, outputRange.startAngle, outputRange.stopAngle);
-#endif
+    ROS_DEBUG("Laser configuration: scaningFrequency %d, angleResolution %d, startAngle %d, stopAngle %d",
+              cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle, cfg.stopAngle);
+    ROS_DEBUG("Laser output range:angleResolution %d, startAngle %d, stopAngle %d",
+              outputRange.angleResolution, outputRange.startAngle, outputRange.stopAngle);
+
     scan_msg.header.frame_id = frame_id;
 
     scan_msg.range_min = 0.01;
@@ -57,8 +57,8 @@ int main(int argc, char **argv)
     scan_msg.angle_min = (double)outputRange.startAngle/10000.0 * DEG2RAD - M_PI/2;
     scan_msg.angle_max = (double)outputRange.stopAngle/10000.0 * DEG2RAD - M_PI/2;
 
-    std::cout << "resolution : " << (double)outputRange.angleResolution/10000.0 << " deg " << std::endl;
-    std::cout << "frequency : " << (double)cfg.scaningFrequency/100.0 << " Hz " << std::endl;
+    ROS_DEBUG_STREAM("resolution : " << (double)outputRange.angleResolution/10000.0 << " deg");
+    ROS_DEBUG_STREAM("frequency : " << (double)cfg.scaningFrequency/100.0 << " Hz");
 
     int angle_range = outputRange.stopAngle - outputRange.startAngle;
     int num_values = angle_range / outputRange.angleResolution ;
@@ -67,14 +67,12 @@ int main(int argc, char **argv)
         ++num_values;
     }
 
-    scan_msg.time_increment = 
+    scan_msg.time_increment =
         (outputRange.angleResolution / 10000.0)
         / 360.0
         / (cfg.scaningFrequency / 100.0);
 
-#if 0
-    std::cout << "time increment : " << (double)scan_msg.time_increment << " seconds " << std::endl;
-#endif
+    ROS_DEBUG_STREAM("time increment : " << (double)scan_msg.time_increment << " seconds");
 
     scan_msg.ranges.resize(num_values);
     scan_msg.intensities.resize(num_values);
@@ -135,5 +133,6 @@ int main(int argc, char **argv)
   {
     ROS_ERROR("Connection to device failed");
   }
+
   return 0;
 }

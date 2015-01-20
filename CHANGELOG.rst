@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.2 (2015-01-20)
+------------------
 * More robust startup for LMS1xs, retries instead of just dying.
 * Switch to console_bridge logouts, separate lib.
 * Remove buffer flush at conclusion.

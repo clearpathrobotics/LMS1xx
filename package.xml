@@ -10,11 +10,11 @@
   <license>LGPL</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>console_bridge</build_depend>
+  <build_depend>rosconsole_bridge</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>roscpp_serialization</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  <run_depend>console_bridge</run_depend>
+  <run_depend>rosconsole_bridge</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>roscpp_serialization</run_depend>
   <run_depend>sensor_msgs</run_depend>

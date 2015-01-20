@@ -2,6 +2,20 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* More robust startup for LMS1xs, retries instead of just dying.
+* Switch to console_bridge logouts, separate lib.
+* Remove buffer flush at conclusion.
+* Use LMS1xx reported configuration instead of capabilities for angle_min, max, etc...
+* Use output range query for min & max angles, num_values, and time_increment.
+  Previously, the code would query the LMS1xx for its capabilities, which
+  might exceed its current configuration (in terms of angle range).  Now, we
+  query the LMS1xx for its configuration when setting scan parameters such
+  as min & max angle, number of values reported, and time increment.
+* Add getScanOutputRange() to read outputRange data from the LMS1xx.
+* Contributors: Mike Purvis, Patrick Doyle
+
 0.1.1 (2014-08-18)
 ------------------
 * Changed the pkg and name so that the launch file is able to find the package.

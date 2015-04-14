@@ -1,3 +1,26 @@
+/*
+ * LMS1xx_node.cpp
+ *
+ *  Authors: Konrad Banachowicz, Mike Purvis
+ *
+ ***************************************************************************
+ *   This source code is free software; you can redistribute it and/or     *
+ *   modify it under the terms of the GNU Lesser General Public            *
+ *   License as published by the Free Software Foundation; either          *
+ *   version 2.1 of the License, or (at your option) any later version.    *
+ *                                                                         *
+ *   This library is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     *
+ *   Lesser General Public License for more details.                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this library; if not, write to the Free Software   *
+ *   Foundation, Inc., 59 Temple Place,                                    *
+ *   Suite 330, Boston, MA  02111-1307  USA                                *
+ *                                                                         *
+ ***************************************************************************/
+
 #include <csignal>
 #include <cstdio>
 #include <LMS1xx/LMS1xx.h>
@@ -41,8 +64,11 @@ int main(int argc, char **argv)
       ROS_INFO("Connected to laser.");
 
       laser.login();
+      ROS_INFO("A");
       cfg = laser.getScanCfg();
+      ROS_INFO("B");
       outputRange = laser.getScanOutputRange();
+      ROS_INFO("C");
 
       ROS_DEBUG("Laser configuration: scaningFrequency %d, angleResolution %d, startAngle %d, stopAngle %d",
                 cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle, cfg.stopAngle);
@@ -63,6 +89,7 @@ int main(int argc, char **argv)
       ROS_DEBUG_STREAM("resolution : " << (double)outputRange.angleResolution/10000.0 << " deg");
       ROS_DEBUG_STREAM("frequency : " << (double)cfg.scaningFrequency/100.0 << " Hz");
 
+      ROS_INFO("D");
       int angle_range = outputRange.stopAngle - outputRange.startAngle;
       int num_values = angle_range / outputRange.angleResolution ;
       if (angle_range % outputRange.angleResolution == 0) {
@@ -88,24 +115,32 @@ int main(int argc, char **argv)
       dataCfg.deviceName = false;
       dataCfg.outputInterval = 1;
 
+      ROS_INFO("E");
       laser.setScanDataCfg(dataCfg);
+      ROS_INFO("F");
 
       laser.startMeas();
 
+      ROS_INFO("G");
       status_t stat;
       do // wait for ready status
       {
+        ROS_INFO("Laser waiting for ready.");
         stat = laser.queryStatus();
         ros::Duration(1.0).sleep();
       }
       while (stat != ready_for_measurement);
+      ROS_INFO("Laser A.");
 
       laser.startDevice(); // Log out to properly re-enable system after config
+      ROS_INFO("Laser B.");
 
       laser.scanContinous(1);
+      ROS_INFO("Laser C.");
 
       while (ros::ok())
       {
+        ROS_INFO("Laser scanning.");
         ros::Time start = ros::Time::now();
 
         scan_msg.header.stamp = start;
@@ -134,6 +169,9 @@ int main(int argc, char **argv)
     }
     else
     {
+retry:
+      laser.disconnect();
+
       ROS_ERROR("Connection to LMS1xx device failed, retrying in 1 second.");
       ros::Duration(1.0).sleep();
     }

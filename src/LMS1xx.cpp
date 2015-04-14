@@ -51,6 +51,10 @@ void LMS1xx::connect(std::string host, int port) {
 			stSockAddr.sin_port = htons(port);
 			Res = inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
 
+      struct timeval tv;
+      tv.tv_sec = 20;
+      setsockopt(sockDesc, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval));
+
 			int ret = ::connect(sockDesc, (struct sockaddr *) &stSockAddr,
 					sizeof stSockAddr);
 			if (ret == 0) {

@@ -21,6 +21,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -50,7 +51,6 @@ void LMS1xx::connect(std::string host, int port) {
 			stSockAddr.sin_family = PF_INET;
 			stSockAddr.sin_port = htons(port);
 			Res = inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
-
 			int ret = ::connect(sockDesc, (struct sockaddr *) &stSockAddr,
 					sizeof stSockAddr);
 			if (ret == 0) {
@@ -117,9 +117,24 @@ status_t LMS1xx::queryStatus() {
 
 void LMS1xx::login() {
 	char buf[100];
+	int result;
 	sprintf(buf, "%c%s%c", 0x02, "sMN SetAccessMode 03 F4724744", 0x03);
+	
+	fd_set readset;
+	struct timeval timeout;
 
-	write(sockDesc, buf, strlen(buf));
+
+	do { //loop until data is available to read
+	  timeout.tv_sec = 1;
+	  timeout.tv_usec = 0;
+
+	  write(sockDesc, buf, strlen(buf));
+
+	  FD_ZERO(&readset);
+	  FD_SET(sockDesc, &readset);
+	  result = select(sockDesc + 1, &readset, NULL, NULL, &timeout);
+
+	} while (result <= 0);
 
 	int len = read(sockDesc, buf, 100);
 	if (buf[0] != 0x02)

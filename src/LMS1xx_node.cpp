@@ -34,15 +34,27 @@ int main(int argc, char **argv)
     ROS_INFO("Connecting to laser at : %s", host.c_str());
 
     // initialize hardware
-    laser.connect(host);
+    do {
+      laser.connect(host);
 
-    if (laser.isConnected())
-    {
+      if (laser.isConnected())
+      {	
+	laser.login();
+	cfg = laser.getScanCfg();
+	outputRange = laser.getScanOutputRange();
+      }
+
+      //check if laser is fully initialized, else reconnect
+      //assuming fully initialized => scaningFrequency=5000
+      if (cfg.scaningFrequency != 5000) {
+	laser.disconnect();
+	ROS_INFO("Waiting for laser to initialize...");
+      }
+
+    } while (!laser.isConnected() || cfg.scaningFrequency != 5000);
+
+    if (laser.isConnected()) {
       ROS_INFO("Connected to laser.");
-
-      laser.login();
-      cfg = laser.getScanCfg();
-      outputRange = laser.getScanOutputRange();
 
       ROS_DEBUG("Laser configuration: scaningFrequency %d, angleResolution %d, startAngle %d, stopAngle %d",
                 cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle, cfg.stopAngle);

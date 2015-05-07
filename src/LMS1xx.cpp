@@ -31,7 +31,6 @@
 #include <cstring>
 #include <unistd.h>
 
-#include "ros/ros.h"
 #include "LMS1xx/LMS1xx.h"
 #include "console_bridge/console.h"
 
@@ -123,11 +122,11 @@ void LMS1xx::login() {
 	
 	fd_set readset;
 	struct timeval timeout;
-	timeout.tv_sec = 1;
-	timeout.tv_usec = 0;
+
 
 	do { //loop until data is available to read
-	  ros::Duration(1.0).sleep();
+	  timeout.tv_sec = 1;
+	  timeout.tv_usec = 0;
 
 	  write(sockDesc, buf, strlen(buf));
 

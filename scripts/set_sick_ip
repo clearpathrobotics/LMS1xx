@@ -1,8 +1,8 @@
-#! /usr/bin/env python
-# Software License Agreement (BSD) 
+#!/usr/bin/env python
+# Software License Agreement (BSD)
 #
-# @@author    Mustafa Safri <msafri@clearpathrobotics.com>
-# @@copyright (c) 2015, Clearpath Robotics, Inc., All rights reserved.
+# @author    Mustafa Safri <msafri@clearpathrobotics.com>
+# @copyright (c) 2015, Clearpath Robotics, Inc., All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that
 # the following conditions are met:
@@ -86,7 +86,7 @@ try:
         try:
             #read reply to set IP cmd
             data,addr = UDP_SOCK.recvfrom(1024)
-            
+
             if ('<?xml' in data and 'Success' in data):
                 print "Laser found, IP address set succesfully:"
                 parser.feed(data)

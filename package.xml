@@ -6,6 +6,7 @@
 
   <author>Konrad Banachowicz</author>
   <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>
+  <url type="website">http://ros.org/wiki/LMS1xx</url>
 
   <license>LGPL</license>
 

@@ -34,8 +34,8 @@ int main(int argc, char **argv)
 
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
-  n.param<std::double>("start_angle", start_angle, -999.9);
-  n.param<std::double>("end_angle", end_angle, 999.9);
+  n.param("start_angle", newStartAngle, -999.9);
+  n.param("end_angle", newEndAngle, 999.9);
 
   while(ros::ok())
   {
@@ -78,10 +78,10 @@ int main(int argc, char **argv)
 
       scan_msg.angle_increment = (double)outputRange.angleResolution/10000.0 * DEG2RAD;
       oldStartAngle = (double)outputRange.startAngle/10000.0 * DEG2RAD - M_PI/2;
-      oldStopAngle = (double)outputRange.stopAngle/10000.0 * DEG2RAD - M_PI/2;
+      oldEndAngle = (double)outputRange.stopAngle/10000.0 * DEG2RAD - M_PI/2;
 
-      newStartAngle = start_angle * DEG2RAD;
-      newEndAngle = end_angle * DEG2RAD;
+      newStartAngle = newStartAngle * DEG2RAD;
+      newEndAngle = newEndAngle * DEG2RAD;
 
       if(newStartAngle > newEndAngle)
       {
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
       if(newEndAngle > oldEndAngle)
       {
         scan_msg.angle_max = oldEndAngle;
-        newEndAngle = oldEngAngle
+        newEndAngle = oldEndAngle;
       }
       else
       {
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
       ROS_DEBUG_STREAM("resolution : " << (double)outputRange.angleResolution/10000.0 << " deg");
       ROS_DEBUG_STREAM("frequency : " << (double)cfg.scaningFrequency/100.0 << " Hz");
 
-      int angle_range = newStopAngle - newStartAngle;
+      int angle_range = newEndAngle - newStartAngle;
       int num_values = angle_range / outputRange.angleResolution;
       if (angle_range % outputRange.angleResolution == 0) {
           // Include endpoint

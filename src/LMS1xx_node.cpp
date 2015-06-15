@@ -21,6 +21,14 @@ int main(int argc, char **argv)
   std::string host;
   std::string frame_id;
 
+  // limiting data
+  double new_start_angle_rad;
+  double new_stop_angle_rad;
+  double old_start_angle;
+  double new_start_angle;
+  double old_stop_angle;
+  double new_stop_angle;
+
   ros::init(argc, argv, "lms1xx");
   ros::NodeHandle nh;
   ros::NodeHandle n("~");
@@ -28,6 +36,8 @@ int main(int argc, char **argv)
 
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
+  n.param("start_angle", new_start_angle, -999.9);
+  n.param("stop_angle", new_stop_angle, 999.9);
 
   while(ros::ok())
   {
@@ -69,18 +79,58 @@ int main(int argc, char **argv)
       scan_msg.scan_time = 100.0/cfg.scaningFrequency;
 
       scan_msg.angle_increment = (double)outputRange.angleResolution/10000.0 * DEG2RAD;
-      scan_msg.angle_min = (double)outputRange.startAngle/10000.0 * DEG2RAD - M_PI/2;
-      scan_msg.angle_max = (double)outputRange.stopAngle/10000.0 * DEG2RAD - M_PI/2;
+      old_start_angle = (double)outputRange.startAngle/10000.0 * DEG2RAD - M_PI/2;
+      old_stop_angle = (double)outputRange.stopAngle/10000.0 * DEG2RAD - M_PI/2;
 
+      new_start_angle_rad = new_start_angle * DEG2RAD;
+      new_stop_angle_rad = new_stop_angle * DEG2RAD;
+      
+      if(new_start_angle_rad > new_stop_angle_rad)
+      {
+        ROS_WARN("Min angle larger than max angle. Flipping min and max angles.");
+
+        double hold = new_start_angle_rad;
+        new_start_angle_rad = new_stop_angle_rad;
+        new_stop_angle_rad = hold;
+        
+        hold = new_start_angle;
+        new_start_angle = new_stop_angle;
+        new_stop_angle = hold;
+      }
+
+      if(new_start_angle_rad < old_start_angle)
+      {
+        scan_msg.angle_min = old_start_angle;
+        new_start_angle_rad = old_start_angle;
+        new_start_angle = outputRange.startAngle;
+      }
+      else
+      {
+        scan_msg.angle_min = new_start_angle_rad;
+        new_start_angle = (new_start_angle + 90) * 10000;
+      }
+      
+      if(new_stop_angle_rad > old_stop_angle)
+      {
+        scan_msg.angle_max = old_stop_angle;
+        new_stop_angle_rad = old_stop_angle;
+        new_stop_angle = outputRange.stopAngle;
+      }
+      else
+      {
+        scan_msg.angle_max = new_stop_angle_rad;
+        new_stop_angle = (new_stop_angle + 90) * 10000;
+      }
+      
       ROS_DEBUG_STREAM("resolution : " << (double)outputRange.angleResolution/10000.0 << " deg");
       ROS_DEBUG_STREAM("frequency : " << (double)cfg.scaningFrequency/100.0 << " Hz");
 
-      int angle_range = outputRange.stopAngle - outputRange.startAngle;
-      int num_values = angle_range / outputRange.angleResolution ;
+      int angle_range = new_stop_angle - new_start_angle;
+      int num_values = angle_range / outputRange.angleResolution;
       if (angle_range % outputRange.angleResolution == 0) {
           // Include endpoint
           ++num_values;
-      }
+      }   
 
       scan_msg.time_increment =
           (outputRange.angleResolution / 10000.0)
@@ -91,6 +141,8 @@ int main(int argc, char **argv)
 
       scan_msg.ranges.resize(num_values);
       scan_msg.intensities.resize(num_values);
+
+      int start_val = (new_start_angle - (double)outputRange.startAngle) / outputRange.angleResolution;
 
       dataCfg.outputChannel = 1;
       dataCfg.remission = true;
@@ -125,14 +177,14 @@ int main(int argc, char **argv)
 
         laser.getData(data);
 
-        for (int i = 0; i < data.dist_len1; i++)
+        for (int i = start_val; i < start_val+num_values; i++)
         {
-          scan_msg.ranges[i] = data.dist1[i] * 0.001;
+          scan_msg.ranges[i-start_val] = data.dist1[i] * 0.001;
         }
 
-        for (int i = 0; i < data.rssi_len1; i++)
+        for (int i = start_val; i < start_val+num_values; i++)
         {
-          scan_msg.intensities[i] = data.rssi1[i];
+          scan_msg.intensities[i-start_val] = data.rssi1[i];
         }
 
         scan_pub.publish(scan_msg);

@@ -1,6 +1,13 @@
 <launch>
   <arg name="host" default="192.168.1.14" />
+  
+  <!-- start and end units are in degrees to keep with lms internal structure. They will be converted to rad in the node. -->
+  <arg name="start" default="-999.9" />
+  <arg name="end" default="999.9" />
+
   <node pkg="lms1xx" name="lms1xx" type="LMS1xx_node" output="screen">
     <param name="host" value="$(arg host)" />
+    <param name="start_angle" value="$(arg start)" />
+    <param name="end_angle" value="$(arg end)" />
   </node>
 </launch>

@@ -2,6 +2,13 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.3 (2015-06-15)
+------------------
+* Added functionality for user to specify start and stop angles to limit field of view. If
+  values outside of the sensor's configured max & min angles are used the node will default
+  to the configured values.
+* Contributors: Nick Charabaruk
+
 0.1.2 (2015-01-20)
 ------------------
 * More robust startup for LMS1xs, retries instead of just dying.

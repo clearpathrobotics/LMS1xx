@@ -1,5 +1,7 @@
 <launch>
-  <arg name="host" default="192.168.1.2" />
+  <arg name="host" default="192.168.1.14" />
+  
+  <!-- start and end units are in degrees to keep with lms internal structure. They will be converted to rad in the node. -->
   <arg name="start" default="-999.9" />
   <arg name="end" default="999.9" />
 

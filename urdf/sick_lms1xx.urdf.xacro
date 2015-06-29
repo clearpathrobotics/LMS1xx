@@ -81,7 +81,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           </noise>
         </ray>
         <plugin name="gazebo_ros_laser" filename="libgazebo_ros_laser.so">
-          <topicName>${topic}</topicName>
+          <topicName>${prefix}/${topic}</topicName>
           <frameName>${prefix}_laser</frameName>
         </plugin>
       </sensor>

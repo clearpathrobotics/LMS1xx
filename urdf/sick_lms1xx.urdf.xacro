@@ -29,9 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="sick_lms1xx" params="prefix topic">
-
-    <link name="${prefix}laser">
+  <xacro:macro name="sick_lms1xx" params="frame:=laser topic:=scan" >
+    <link name="${frame}">
       <inertial>
         <mass value="1.1" />
         <origin xyz="0 0 0" />
@@ -54,9 +53,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       </collision>
     </link>
 
-    <gazebo reference="${prefix}laser">
+    <gazebo reference="${frame}">
       <turnGravityOff>true</turnGravityOff>
-      <sensor type="ray" name="${prefix}laser">
+      <sensor type="ray" name="${frame}">
         <pose>0 0 0 0 0 0</pose>
         <visualize>false</visualize>
         <update_rate>40</update_rate>
@@ -81,8 +80,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           </noise>
         </ray>
         <plugin name="gazebo_ros_laser" filename="libgazebo_ros_laser.so">
-          <topicName>${prefix}/${topic}</topicName>
-          <frameName>${prefix}laser</frameName>
+          <topicName>${topic}</topicName>
+          <frameName>${frame}</frameName>
         </plugin>
       </sensor>
     </gazebo>

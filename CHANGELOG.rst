@@ -2,6 +2,14 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added URDF with simulation plugin.
+* Added script to set static IP of LMS1xx
+* Fixed startup publishing issue
+* Removed one second delay in login
+* Contributors: Mike Purvis, Mustafa Safri, Tony Baltovski
+
 0.1.2 (2015-01-20)
 ------------------
 * More robust startup for LMS1xs, retries instead of just dying.

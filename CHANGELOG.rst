@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.3 (2015-07-16)
+------------------
 * Added URDF with simulation plugin.
 * Added script to set static IP of LMS1xx
 * Fixed startup publishing issue

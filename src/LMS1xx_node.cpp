@@ -14,6 +14,7 @@ int main(int argc, char **argv)
   scanOutputRange outputRange;
   scanDataCfg dataCfg;
   scanData data;
+  memset(&data, 0, sizeof(data));
   // published data
   sensor_msgs::LaserScan scan_msg;
 
@@ -38,7 +39,7 @@ int main(int argc, char **argv)
       laser.connect(host);
 
       if (laser.isConnected())
-      {	
+      {
 	laser.login();
 	cfg = laser.getScanCfg();
 	outputRange = laser.getScanOutputRange();

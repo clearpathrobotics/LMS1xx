@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.4 (2015-09-04)
+------------------
 * Another startup bugfix.
 * Contributors: Tony Baltovski
 

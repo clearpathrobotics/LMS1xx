@@ -47,12 +47,12 @@ int main(int argc, char **argv)
 
       //check if laser is fully initialized, else reconnect
       //assuming fully initialized => scaningFrequency=5000
-      if (cfg.scaningFrequency != 5000) {
-	laser.disconnect();
-	ROS_INFO("Waiting for laser to initialize...");
-      }
+      //if (cfg.scaningFrequency != 5000) {
+	//laser.disconnect();
+	//ROS_INFO("Waiting for laser to initialize...");
+      //}
 
-    } while (!laser.isConnected() || cfg.scaningFrequency != 5000);
+    } while (!laser.isConnected());
 
     if (laser.isConnected()) {
       ROS_INFO("Connected to laser.");

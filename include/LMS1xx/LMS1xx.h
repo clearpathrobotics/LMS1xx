@@ -294,6 +294,16 @@ public:
 	void setScanDataCfg(const scanDataCfg &cfg);
 
 	/*!
+	* @brief Set output range configuration.
+	* Get output range configuration :
+	* - angle resolution.
+	* - start angle.
+	* - stop angle.
+	* @param cfg structure containing output range configuration.
+	*/
+	void setOutputRange(const scanOutputRange &cfg);
+
+	/*!
 	* @brief Get current output range configuration.
 	* Get output range configuration :
 	* - scanning resolution.

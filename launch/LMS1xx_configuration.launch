@@ -1,0 +1,21 @@
+<launch>
+  <arg name="host"                  default="192.168.1.14" />
+  <arg name="time_out"              default="10" />
+
+  <!-- SICK new configuration to set -->
+  <arg name="scaning_frequency"     default="5000" />
+  <arg name="angle_resolution"      default="5000" />
+  <arg name="start_angle"           default="-450000" />
+  <arg name="stop_angle"            default="2250000" />
+  <arg name="make_persistent"       default="false" />
+
+  <node pkg="lms1xx" name="lms1xx" type="LMS1xx_configuration" output="screen">
+    <param name="host"              value="$(arg host)" />
+    <param name="time_out"          value="$(arg time_out)" />
+    <param name="scaning_frequency" value="$(arg scaning_frequency)" />
+    <param name="angle_resolution"  value="$(arg angle_resolution)" />
+    <param name="start_angle"       value="$(arg start_angle)" />
+    <param name="stop_angle"        value="$(arg stop_angle)" />
+    <param name="make_persistent"   value="$(arg make_persistent)" />
+  </node>
+</launch>

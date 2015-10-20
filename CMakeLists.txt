@@ -15,8 +15,10 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(LMS1xx_node src/LMS1xx_node.cpp)
 target_link_libraries(LMS1xx_node LMS1xx ${catkin_LIBRARIES})
 
+add_executable(LMS1xx_configuration src/LMS1xx_configuration.cpp)
+target_link_libraries(LMS1xx_configuration LMS1xx ${catkin_LIBRARIES})
 
-install(TARGETS LMS1xx LMS1xx_node
+install(TARGETS LMS1xx LMS1xx_node LMS1xx_configuration
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

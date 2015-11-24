@@ -29,38 +29,41 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include "LMS1xx/LMS1xx.h"
 #include "console_bridge/console.h"
 
-LMS1xx::LMS1xx() :
-  connected(false)
+LMS1xx::LMS1xx() : connected_(false)
 {
 }
 
 LMS1xx::~LMS1xx()
 {
-
 }
 
 void LMS1xx::connect(std::string host, int port)
 {
-  if (!connected)
+  if (!connected_)
   {
-    sockDesc = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (sockDesc)
+    logDebug("Creating non-blocking socket.");
+    socket_fd_ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (socket_fd_)
     {
       struct sockaddr_in stSockAddr;
-      int Res;
       stSockAddr.sin_family = PF_INET;
       stSockAddr.sin_port = htons(port);
-      Res = inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
-      int ret = ::connect(sockDesc, (struct sockaddr *) &stSockAddr,
-                          sizeof stSockAddr);
+      inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
+
+      logDebug("Connecting socket to laser.");
+      int ret = ::connect(socket_fd_, (struct sockaddr *) &stSockAddr, sizeof(stSockAddr));
+
       if (ret == 0)
       {
-        connected = true;
+        connected_ = true;
+        logDebug("Connected succeeded.");
       }
     }
   }
@@ -68,16 +71,16 @@ void LMS1xx::connect(std::string host, int port)
 
 void LMS1xx::disconnect()
 {
-  if (connected)
+  if (connected_)
   {
-    close(sockDesc);
-    connected = false;
+    close(socket_fd_);
+    connected_ = false;
   }
 }
 
 bool LMS1xx::isConnected()
 {
-  return connected;
+  return connected_;
 }
 
 void LMS1xx::startMeas()
@@ -85,9 +88,9 @@ void LMS1xx::startMeas()
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sMN LMCstartmeas", 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
     logWarn("invalid packet recieved");
   buf[len] = 0;
@@ -99,9 +102,9 @@ void LMS1xx::stopMeas()
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sMN LMCstopmeas", 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
     logWarn("invalid packet recieved");
   buf[len] = 0;
@@ -113,9 +116,9 @@ status_t LMS1xx::queryStatus()
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sRN STlms", 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
     logWarn("invalid packet recieved");
   buf[len] = 0;
@@ -142,16 +145,16 @@ void LMS1xx::login()
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    write(sockDesc, buf, strlen(buf));
+    write(socket_fd_, buf, strlen(buf));
 
     FD_ZERO(&readset);
-    FD_SET(sockDesc, &readset);
-    result = select(sockDesc + 1, &readset, NULL, NULL, &timeout);
+    FD_SET(socket_fd_, &readset);
+    result = select(socket_fd_ + 1, &readset, NULL, NULL, &timeout);
 
   }
   while (result <= 0);
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
     logWarn("invalid packet recieved");
   buf[len] = 0;
@@ -164,9 +167,9 @@ scanCfg LMS1xx::getScanCfg() const
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sRN LMPscancfg", 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
     logWarn("invalid packet recieved");
   buf[len] = 0;
@@ -184,9 +187,9 @@ void LMS1xx::setScanCfg(const scanCfg &cfg)
           cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle,
           cfg.stopAngle, 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
 
   buf[len - 1] = 0;
 }
@@ -199,9 +202,9 @@ void LMS1xx::setScanDataCfg(const scanDataCfg &cfg)
           cfg.resolution, cfg.encoder, cfg.position ? 1 : 0,
           cfg.deviceName ? 1 : 0, cfg.timestamp ? 1 : 0, cfg.outputInterval, 0x03);
   logDebug("TX: %s", buf);
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
   buf[len - 1] = 0;
 }
 
@@ -211,9 +214,9 @@ scanOutputRange LMS1xx::getScanOutputRange() const
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sRN LMPoutputRange", 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
 
   sscanf(buf + 1, "%*s %*s %*d %X %X %X", &outputRange.angleResolution,
          &outputRange.startAngle, &outputRange.stopAngle);
@@ -225,9 +228,9 @@ void LMS1xx::scanContinous(int start)
   char buf[100];
   sprintf(buf, "%c%s %d%c", 0x02, "sEN LMDscandata", start, 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
     logError("invalid packet recieved");
@@ -236,32 +239,51 @@ void LMS1xx::scanContinous(int start)
   logDebug("RX: %s", buf);
 }
 
-void LMS1xx::getData(scanData& data)
+bool LMS1xx::getScanData(scanData* scan_data)
 {
-  char buf[20000];
   fd_set rfds;
-  struct timeval tv;
-  int retval, len;
-  len = 0;
+  FD_ZERO(&rfds);
+  FD_SET(socket_fd_, &rfds);
 
-  do
+  // Block a total of up to 100ms waiting for more data from the laser.
+  while (1)
   {
-    FD_ZERO(&rfds);
-    FD_SET(sockDesc, &rfds);
-
+    // Would be great to depend on linux's behaviour of updating the timeval, but unfortunately
+    // that's non-POSIX (doesn't work on OS X, for example).
+    struct timeval tv;
     tv.tv_sec = 0;
-    tv.tv_usec = 50000;
-    retval = select(sockDesc + 1, &rfds, NULL, NULL, &tv);
+    tv.tv_usec = 100000;
+
+    logDebug("entering select()", tv.tv_usec);
+    int retval = select(socket_fd_ + 1, &rfds, NULL, NULL, &tv);
+    logDebug("returned %d from select()", retval);
     if (retval)
     {
-      len += read(sockDesc, buf + len, 20000 - len);
+      buffer_.readFrom(socket_fd_);
+
+      // Will return pointer if a complete message exists in the buffer,
+      // otherwise will return null.
+      char* buffer_data = buffer_.getNextBuffer();
+
+      if (buffer_data)
+      {
+        parseScanData(buffer_data, scan_data);
+        buffer_.popLastBuffer();
+        return true;
+      }
+    }
+    else
+    {
+      // Select timed out or there was an fd error.
+      return false;
     }
   }
-  while ((buf[0] != 0x02) || (buf[len - 1] != 0x03));
+}
 
-  logDebug("scan data recieved");
-  buf[len - 1] = 0;
-  char* tok = strtok(buf, " "); //Type of command
+
+void LMS1xx::parseScanData(char* buffer, scanData* data)
+{
+  char* tok = strtok(buffer, " "); //Type of command
   tok = strtok(NULL, " "); //Command
   tok = strtok(NULL, " "); //VersionNumber
   tok = strtok(NULL, " "); //DeviceNumber
@@ -326,19 +348,19 @@ void LMS1xx::getData(scanData& data)
 
     if (type == 0)
     {
-      data.dist_len1 = NumberData;
+      data->dist_len1 = NumberData;
     }
     else if (type == 1)
     {
-      data.dist_len2 = NumberData;
+      data->dist_len2 = NumberData;
     }
     else if (type == 2)
     {
-      data.rssi_len1 = NumberData;
+      data->rssi_len1 = NumberData;
     }
     else if (type == 3)
     {
-      data.rssi_len2 = NumberData;
+      data->rssi_len2 = NumberData;
     }
 
     for (int i = 0; i < NumberData; i++)
@@ -349,19 +371,19 @@ void LMS1xx::getData(scanData& data)
 
       if (type == 0)
       {
-        data.dist1[i] = dat;
+        data->dist1[i] = dat;
       }
       else if (type == 1)
       {
-        data.dist2[i] = dat;
+        data->dist2[i] = dat;
       }
       else if (type == 2)
       {
-        data.rssi1[i] = dat;
+        data->rssi1[i] = dat;
       }
       else if (type == 3)
       {
-        data.rssi2[i] = dat;
+        data->rssi2[i] = dat;
       }
 
     }
@@ -405,19 +427,19 @@ void LMS1xx::getData(scanData& data)
 
     if (type == 0)
     {
-      data.dist_len1 = NumberData;
+      data->dist_len1 = NumberData;
     }
     else if (type == 1)
     {
-      data.dist_len2 = NumberData;
+      data->dist_len2 = NumberData;
     }
     else if (type == 2)
     {
-      data.rssi_len1 = NumberData;
+      data->rssi_len1 = NumberData;
     }
     else if (type == 3)
     {
-      data.rssi_len2 = NumberData;
+      data->rssi_len2 = NumberData;
     }
     for (int i = 0; i < NumberData; i++)
     {
@@ -427,23 +449,22 @@ void LMS1xx::getData(scanData& data)
 
       if (type == 0)
       {
-        data.dist1[i] = dat;
+        data->dist1[i] = dat;
       }
       else if (type == 1)
       {
-        data.dist2[i] = dat;
+        data->dist2[i] = dat;
       }
       else if (type == 2)
       {
-        data.rssi1[i] = dat;
+        data->rssi1[i] = dat;
       }
       else if (type == 3)
       {
-        data.rssi2[i] = dat;
+        data->rssi2[i] = dat;
       }
     }
   }
-
 }
 
 void LMS1xx::saveConfig()
@@ -451,9 +472,9 @@ void LMS1xx::saveConfig()
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sMN mEEwriteall", 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
     logWarn("invalid packet recieved");
@@ -466,9 +487,9 @@ void LMS1xx::startDevice()
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sMN Run", 0x03);
 
-  write(sockDesc, buf, strlen(buf));
+  write(socket_fd_, buf, strlen(buf));
 
-  int len = read(sockDesc, buf, 100);
+  int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
     logWarn("invalid packet recieved");

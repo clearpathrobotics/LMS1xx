@@ -142,7 +142,8 @@ public:
 
 	/*!
 	* @brief Receive single scan message.
-  * @return true if scan was read successfully, false if error or timeout.
+  * @return true if scan was read successfully, false if error or timeout. False implies that higher level
+  *         logic should take correct action such as reopening the connection.
 	*/
   bool getScanData(scanData* scan_data);
 

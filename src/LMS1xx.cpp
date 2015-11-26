@@ -29,6 +29,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include "LMS1xx/LMS1xx.h"
@@ -43,20 +45,26 @@ LMS1xx::~LMS1xx()
 }
 
 void LMS1xx::connect(std::string host, int port) {
-	if (!connected_) {
+	if (!connected_)
+  {
+    logDebug("Creating non-blocking socket.");
 		socket_fd_ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (socket_fd_) {
+		if (socket_fd_)
+    {
 			struct sockaddr_in stSockAddr;
-			int Res;
 			stSockAddr.sin_family = PF_INET;
 			stSockAddr.sin_port = htons(port);
-			Res = inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
-			int ret = ::connect(socket_fd_, (struct sockaddr *) &stSockAddr,
-					sizeof stSockAddr);
-			if (ret == 0) {
+			inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
+
+      logDebug("Connecting socket to laser.");
+			int ret = ::connect(socket_fd_, (struct sockaddr *) &stSockAddr, sizeof(stSockAddr));
+
+			if (ret == 0)
+      {
 				connected_ = true;
+        logDebug("Connected succeeded.");
 			}
-		}
+ 		}
 	}
 }
 
@@ -218,19 +226,22 @@ void LMS1xx::scanContinous(int start) {
 
 bool LMS1xx::getScanData(scanData* scan_data)
 {
-  // 100ms timeout. If no data within this timeout, return false.
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 100000;
-
-	fd_set rfds;
+  fd_set rfds;
   FD_ZERO(&rfds);
-	FD_SET(socket_fd_, &rfds);
+  FD_SET(socket_fd_, &rfds);
 
   // Block a total of up to 100ms waiting for more data from the laser.
-  while(tv.tv_usec > 0)
+  while(1)
   {
+    // Would be great to depend on linux's behaviour of updating the timeval, but unfortunately
+    // that's non-POSIX (doesn't work on OS X, for example).
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000;
+
+    logDebug("entering select()", tv.tv_usec);
     int retval = select(socket_fd_ + 1, &rfds, NULL, NULL, &tv);
+    logDebug("returned %d from select()", retval);
     if (retval)
     {
       buffer_.readFrom(socket_fd_);
@@ -246,8 +257,12 @@ bool LMS1xx::getScanData(scanData* scan_data)
         return true;
       }
     }
+    else
+    {
+      // Select timed out or there was an fd error.
+      return false;
+    }
   }
-  return false;
 }
 
 

@@ -24,6 +24,8 @@
 #ifndef LMS1XX_LMS_STRUCTS_H_
 #define LMS1XX_LMS_STRUCTS_H_
 
+#include <stdint.h>
+
 /*!
 * @class scanCfg
 * @brief Structure containing scan configuration.

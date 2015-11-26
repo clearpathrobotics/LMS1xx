@@ -23,7 +23,8 @@
 #include "LMS1xx/lms_buffer.h"
 #include "gtest/gtest.h"
 
-#include <unistd.h>  // for pipe()
+#include <errno.h>
+#include <unistd.h>
 
 
 class BufferTest : public :: testing :: Test

@@ -39,7 +39,7 @@ public:
 
   void readFrom(int fd)
   {
-	  int ret = read(fd, buffer_ + total_length_, sizeof(buffer_) - total_length_);
+    int ret = read(fd, buffer_ + total_length_, sizeof(buffer_) - total_length_);
 
     if (ret > 0)
     {
@@ -76,7 +76,7 @@ public:
     {
       // Start of message found, ahead of the start of buffer. Therefore shift the buffer back.
       logWarn("Shifting buffer, dropping %d bytes, %d bytes remain.",
-          (start_of_message - buffer_), total_length_ - (start_of_message - buffer_));
+              (start_of_message - buffer_), total_length_ - (start_of_message - buffer_));
       shiftBuffer(start_of_message);
     }
 
@@ -116,7 +116,7 @@ private:
     total_length_ = remaining_length;
   }
 
-	char buffer_[LMS_BUFFER_SIZE];
+  char buffer_[LMS_BUFFER_SIZE];
   uint16_t total_length_;
 
   char* end_of_first_message_;

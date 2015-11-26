@@ -36,9 +36,6 @@ int main(int argc, char **argv)
   scanCfg cfg;
   scanOutputRange outputRange;
   scanDataCfg dataCfg;
-  scanData data;
-  memset(&data, 0, sizeof(data));
-  // published data
   sensor_msgs::LaserScan scan_msg;
 
   // parameters
@@ -137,7 +134,6 @@ int main(int argc, char **argv)
       while (stat != ready_for_measurement);
 
       laser.startDevice(); // Log out to properly re-enable system after config
-
       laser.scanContinous(1);
 
       while (ros::ok())
@@ -147,19 +143,26 @@ int main(int argc, char **argv)
         scan_msg.header.stamp = start;
         ++scan_msg.header.seq;
 
-        laser.getData(data);
-
-        for (int i = 0; i < data.dist_len1; i++)
+        scanData data;
+        if (laser.getScanData(&data))
         {
-          scan_msg.ranges[i] = data.dist1[i] * 0.001;
-        }
+          for (int i = 0; i < data.dist_len1; i++)
+          {
+            scan_msg.ranges[i] = data.dist1[i] * 0.001;
+          }
 
-        for (int i = 0; i < data.rssi_len1; i++)
+          for (int i = 0; i < data.rssi_len1; i++)
+          {
+            scan_msg.intensities[i] = data.rssi1[i];
+          }
+
+          scan_pub.publish(scan_msg);
+        }
+        else
         {
-          scan_msg.intensities[i] = data.rssi1[i];
+          ROS_ERROR("Laser timed out on delivering scan, attempting to reinitialize.");
+          break;
         }
-
-        scan_pub.publish(scan_msg);
 
         ros::spinOnce();
       }

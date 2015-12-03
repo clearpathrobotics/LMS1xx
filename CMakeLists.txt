@@ -27,3 +27,8 @@ install(DIRECTORY meshes launch urdf
 
 install(PROGRAMS scripts/find_sick scripts/set_sick_ip
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(test_buffer test/test_buffer.cpp)
+  target_link_libraries(test_buffer ${catkin_LIBRARIES})
+endif()

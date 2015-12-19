@@ -31,4 +31,12 @@ install(PROGRAMS scripts/find_sick scripts/set_sick_ip
 if (CATKIN_ENABLE_TESTING)
   catkin_add_gtest(test_buffer test/test_buffer.cpp)
   target_link_libraries(test_buffer ${catkin_LIBRARIES})
+
+  find_package(roslint REQUIRED)
+  roslint_cpp()
+  #roslint_add_test()
+
+  find_package(roslaunch REQUIRED)
+  roslaunch_add_file_check(launch/LMS1xx.launch)
 endif()
+

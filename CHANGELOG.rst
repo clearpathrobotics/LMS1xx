@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.5 (2015-12-18)
+------------------
 * Rework startup/reconnection logic.
 * Add roslaunch, roslint checks.
 * Other fixes, including a new buffer class with tests.

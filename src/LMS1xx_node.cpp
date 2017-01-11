@@ -41,6 +41,7 @@ int main(int argc, char **argv)
   // parameters
   std::string host;
   std::string frame_id;
+  int port;
 
   ros::init(argc, argv, "lms1xx");
   ros::NodeHandle nh;
@@ -49,11 +50,12 @@ int main(int argc, char **argv)
 
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
+  n.param<int>("port", port, 2111);
 
   while (ros::ok())
   {
     ROS_INFO_STREAM("Connecting to laser at " << host);
-    laser.connect(host);
+    laser.connect(host, port);
     if (!laser.isConnected())
     {
       ROS_WARN("Unable to connect, retrying.");

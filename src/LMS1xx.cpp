@@ -36,8 +36,11 @@
 #include "LMS1xx/LMS1xx.h"
 #include "console_bridge/console.h"
 
+#include <time.h>
+
 LMS1xx::LMS1xx() : connected_(false)
 {
+  //console_bridge::setLogLevel(console_bridge::CONSOLE_BRIDGE_LOG_DEBUG);
 }
 
 LMS1xx::~LMS1xx()
@@ -67,6 +70,78 @@ void LMS1xx::connect(std::string host, int port)
       }
     }
   }
+}
+
+NTPstatus LMS1xx::getNTPstatus() const
+{
+  NTPstatus ntpStatus;
+  char buf[100];
+  uint32_t bytes;
+
+  // get max offset
+  sprintf(buf, "%c%s%c", 0x02, "sRN TSCTCmaxoffset", 0x03);
+  write(socket_fd_, buf, strlen(buf));
+  int len = read(socket_fd_, buf, 100);
+  if (buf[0] != 0x02)
+    logWarn("invalid packet recieved");
+  buf[len-1] = 0;
+  logDebug("RX: %s", buf);
+  sscanf((buf + 20), "%X", &bytes);
+  ntpStatus.maxOffsetNTP = *((float*)&bytes);
+
+  // get dealy time
+  sprintf(buf, "%c%s%c", 0x02, "sRN TSCTCdelay", 0x03);
+  write(socket_fd_, buf, strlen(buf));
+  len = read(socket_fd_, buf, 100);
+  if (buf[0] != 0x02)
+  	logWarn("invalid packet recieved");
+  buf[len-1] = 0;
+  logDebug("RX: %s", buf);
+  sscanf((buf + 16), "%X", &bytes);
+
+  ntpStatus.timeDelay = *((float*)&bytes);  
+
+  return ntpStatus;
+}
+
+void LMS1xx::setNTPsettings(const NTPcfg &cfg)
+{
+  char buf[100];
+  // send NTP role
+  sprintf(buf, "%c%s %d%c", 0x02,
+        "sWN TSCRole", cfg.NTProle, 0x03);
+  logDebug("TX: %s", buf);
+  write(socket_fd_, buf, strlen(buf));
+  int len = read(socket_fd_, buf, 100);
+  buf[len - 1] = 0;
+  // send time synchronization interface 
+  sprintf(buf, "%c%s %d%c", 0x02,
+        "sWN TSCTCInterface", cfg.timeSyncIfc, 0x03);
+  logDebug("TX: %s", buf);
+  write(socket_fd_, buf, strlen(buf));
+  len = read(socket_fd_, buf, 100);
+  buf[len - 1] = 0;
+  // send time server IP address c0 a8 0 1
+  sprintf(buf, "%c%s %X %X %X %X%c", 0x02,
+       "sWN TSCTCSrvAddr", cfg.serverIP[0], cfg.serverIP[1], cfg.serverIP[2], cfg.serverIP[3], 0x03);
+  logDebug("TX: %s", buf);
+  write(socket_fd_, buf, strlen(buf));
+  len = read(socket_fd_, buf, 100);
+  buf[len - 1] = 0;
+  // send time zone
+  sprintf(buf, "%c%s %X%c", 0x02,
+          "sWN TSCTCtimezone",cfg.timeZone+12, 0x03);
+  logDebug("TX: %s", buf);
+  write(socket_fd_, buf, strlen(buf));
+  len = read(socket_fd_, buf, 100);
+  buf[len - 1] = 0;
+  // send update time
+  sprintf(buf, "%c%s +%d%c", 0x02,
+          "sWN TSCTCupdatetime", cfg.updateTime, 0x03);
+  logDebug("TX: %s", buf);
+  write(socket_fd_, buf, strlen(buf));
+  len = read(socket_fd_, buf, 100);
+  buf[len - 1] = 0;
 }
 
 void LMS1xx::disconnect()
@@ -293,6 +368,11 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   tok = strtok(NULL, " "); //ScanCounter
   tok = strtok(NULL, " "); //PowerUpDuration
   tok = strtok(NULL, " "); //TransmissionDuration
+  uint32_t PowerUpDuration;
+  sscanf(tok, "%X", &PowerUpDuration);
+  logDebug("PowerUpDuration : %d\n", PowerUpDuration);
+  data->msg_startup_usec = PowerUpDuration;
+
   tok = strtok(NULL, " "); //InputStatus
   tok = strtok(NULL, " "); //OutputStatus
   tok = strtok(NULL, " "); //ReservedByteA
@@ -465,6 +545,94 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
       }
     }
   }
+
+  tok = strtok(NULL, " "); //PositionDataEnable
+  int PositionDataEnable;
+  sscanf(tok, "%d", &PositionDataEnable);
+  logDebug("NumberChannels8Bit : %d\n", PositionDataEnable);
+  if(PositionDataEnable == 1){
+  tok = strtok(NULL, " "); //X position
+  tok = strtok(NULL, " "); //Y position
+  tok = strtok(NULL, " "); //Z position
+  tok = strtok(NULL, " "); //X rotation
+  tok = strtok(NULL, " "); //Y rotation
+  tok = strtok(NULL, " "); //Z rotation
+  tok = strtok(NULL, " "); //rotations type
+  tok = strtok(NULL, " "); //Transmits the name of device
+  }
+
+  tok = strtok(NULL, " "); //NameEnable
+  int NameEnable;
+  sscanf(tok, "%d", &NameEnable);
+  logDebug("NameEnable : %d\n", NameEnable);
+  if(NameEnable == 1){
+  tok = strtok(NULL, " "); //Length of name
+  tok = strtok(NULL, " "); //Device name in characters
+  }
+
+  tok = strtok(NULL, " "); //CommentEnable
+  int CommentEnable;
+  sscanf(tok, "%d", &CommentEnable);
+  logDebug("CommentEnable : %d\n", CommentEnable);
+  if(CommentEnable == 1){
+  tok = strtok(NULL, " "); //Length of comment
+  tok = strtok(NULL, " "); //Transmits a comment in characters
+  }
+
+  tok = strtok(NULL, " "); //TimeEnable
+  int TimeEnable;
+  sscanf(tok, "%d", &TimeEnable);
+  logDebug("TimeEnable : %d\n", TimeEnable);
+  if(TimeEnable == 1){
+  struct tm msg_time = {0};
+  //Year
+  uint16_t year; 
+  tok = strtok(NULL, " "); 
+  sscanf(tok, "%hX", &year);
+  msg_time.tm_year = (int) year - 1900;
+  logDebug("NTP year: %hX\n", year);
+  logDebug("NTP year: %d\n", msg_time.tm_year);
+  // Month
+  uint8_t int_8_buf; 
+  tok = strtok(NULL, " "); 
+  sscanf(tok, "%hhX", &int_8_buf);
+  msg_time.tm_mon = (int) int_8_buf - 1;
+  logDebug("NTP month: %hhX\n", int_8_buf);
+
+  // Day
+  tok = strtok(NULL, " "); 
+  sscanf(tok, "%hhX", &int_8_buf);
+  msg_time.tm_mday = (int) int_8_buf;
+  logDebug("NTP day: %hhX\n", int_8_buf);
+
+  // Hour
+  tok = strtok(NULL, " "); 
+  sscanf(tok, "%hhX", &int_8_buf);
+  msg_time.tm_hour = (int) int_8_buf;
+  logDebug("NTP hour: %hhX\n", int_8_buf);
+
+  // Minute
+  tok = strtok(NULL, " "); 
+  sscanf(tok, "%hhX", &int_8_buf);
+  msg_time.tm_min = (int) int_8_buf;
+  logDebug("NTP minute: %hhX\n", int_8_buf);
+
+  // Second
+  tok = strtok(NULL, " "); 
+  sscanf(tok, "%hhX", &int_8_buf);
+  msg_time.tm_sec = (int) int_8_buf;
+  data->msg_sec = mktime(&msg_time);
+  logDebug("NTP sec: %lld\n", (long long) data->msg_sec);
+
+  // Microsecond
+  uint32_t microsecond; 
+  tok = strtok(NULL, " "); 
+  sscanf(tok, "%X", &microsecond);
+  data->msg_usec = microsecond ;
+  logDebug("NTP usec: %X\n", microsecond);  
+  }
+  
+
 }
 
 void LMS1xx::saveConfig()

@@ -26,7 +26,6 @@
 #include <LMS1xx/LMS1xx.h>
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
-
 #define DEG2RAD M_PI/180.0
 
 int main(int argc, char **argv)
@@ -34,6 +33,7 @@ int main(int argc, char **argv)
   // laser data
   LMS1xx laser;
   scanCfg cfg;
+  NTPcfg cfg_ntp;
   scanOutputRange outputRange;
   scanDataCfg dataCfg;
   sensor_msgs::LaserScan scan_msg;
@@ -42,6 +42,7 @@ int main(int argc, char **argv)
   std::string host;
   std::string frame_id;
 
+ 
   ros::init(argc, argv, "lms1xx");
   ros::NodeHandle nh;
   ros::NodeHandle n("~");
@@ -78,7 +79,7 @@ int main(int argc, char **argv)
 
     ROS_DEBUG("Laser configuration: scaningFrequency %d, angleResolution %d, startAngle %d, stopAngle %d",
               cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle, cfg.stopAngle);
-    ROS_DEBUG("Laser output range:angleResolution %d, startAngle %d, stopAngle %d",
+    ROS_DEBUG("Laser output range: angleResolution %d, startAngle %d, stopAngle %d",
               outputRange.angleResolution, outputRange.startAngle, outputRange.stopAngle);
 
     scan_msg.header.frame_id = frame_id;
@@ -116,18 +117,39 @@ int main(int argc, char **argv)
     dataCfg.position = false;
     dataCfg.deviceName = false;
     dataCfg.outputInterval = 1;
+    dataCfg.timestamp = true;
 
     ROS_DEBUG("Setting scan data configuration.");
     laser.setScanDataCfg(dataCfg);
 
+    // check if useNTP flag is set true
+    bool useNTP_flag;
+    n.param<bool>("useNTP", useNTP_flag, false);
+    if (useNTP_flag){
+      ROS_DEBUG("Setting NTP configuration.");
+      // get NTP params from ROS
+      std::string IPstring;
+      n.param<int>("NTProle", cfg_ntp.NTProle, 1);
+      n.param<int>("timeSyncIfc", cfg_ntp.timeSyncIfc, 0);
+      n.param<std::string>("serverIP", IPstring, "192.168.0.1");
+      char * dup = strdup(IPstring.c_str());
+      char * token = strtok(dup, ".");
+      for(int i = 0; i < 4; i++){
+        cfg_ntp.serverIP[i] = std::atoi( token );
+          token = strtok(NULL, ".");
+      }
+      free(dup);
+      n.param<int>("timeZone", cfg_ntp.timeZone , 1);
+      n.param<int>("updateTime", cfg_ntp.updateTime, 10);
+      ROS_DEBUG("Setting NTP configuration.");
+      laser.setNTPsettings(cfg_ntp);  
+    }
     ROS_DEBUG("Starting measurements.");
     laser.startMeas();
 
     ROS_DEBUG("Waiting for ready status.");
     ros::Time ready_status_timeout = ros::Time::now() + ros::Duration(5);
 
-    //while(1)
-    //{
     status_t stat = laser.queryStatus();
     ros::Duration(1.0).sleep();
     if (stat != ready_for_measurement)
@@ -137,25 +159,6 @@ int main(int argc, char **argv)
       ros::Duration(1).sleep();
       continue;
     }
-    /*if (stat == ready_for_measurement)
-    {
-      ROS_DEBUG("Ready status achieved.");
-      break;
-    }
-
-      if (ros::Time::now() > ready_status_timeout)
-      {
-        ROS_WARN("Timed out waiting for ready status. Trying again.");
-        laser.disconnect();
-        continue;
-      }
-
-      if (!ros::ok())
-      {
-        laser.disconnect();
-        return 1;
-      }
-    }*/
 
     ROS_DEBUG("Starting device.");
     laser.startDevice(); // Log out to properly re-enable system after config
@@ -169,7 +172,6 @@ int main(int argc, char **argv)
 
       scan_msg.header.stamp = start;
       ++scan_msg.header.seq;
-
       scanData data;
       ROS_DEBUG("Reading scan data.");
       if (laser.getScanData(&data))
@@ -183,7 +185,12 @@ int main(int argc, char **argv)
         {
           scan_msg.intensities[i] = data.rssi1[i];
         }
-
+        // check if useNTP flag is set true
+        if (useNTP_flag){
+          ROS_DEBUG("Publishing NTP time stamp.");
+          scan_msg.header.stamp.sec = data.msg_sec;
+          scan_msg.header.stamp.nsec = data.msg_usec*1000;
+        }
         ROS_DEBUG("Publishing scan data.");
         scan_pub.publish(scan_msg);
       }
@@ -192,14 +199,11 @@ int main(int argc, char **argv)
         ROS_ERROR("Laser timed out on delivering scan, attempting to reinitialize.");
         break;
       }
-
       ros::spinOnce();
     }
-
     laser.scanContinous(0);
     laser.stopMeas();
     laser.disconnect();
   }
-
   return 0;
 }

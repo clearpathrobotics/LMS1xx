@@ -62,6 +62,15 @@ public:
   void connect(std::string host, int port = 2111);
 
   /*!
+  * @brief get max time offset and delay.
+  */
+  NTPstatus getNTPstatus() const;
+  
+  /*!
+  * @brief set NTP settings.
+  */
+  void setNTPsettings(const NTPcfg &cfg);
+  /*!
   * @brief Disconnect from LMS1xx device.
   */
   void disconnect();

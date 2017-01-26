@@ -1,6 +1,19 @@
 <launch>
   <arg name="host" default="192.168.1.14" />
-  <node pkg="lms1xx" name="lms1xx" type="LMS1xx_node">
-    <param name="host" value="$(arg host)" />
-  </node>
+  <arg name="useNTP" default="false" />
+  <arg name="NTProle" default="1" />
+  <arg name="timeSyncIfc" default="0" />
+  <arg name="serverIP" default="192.168.1.1" />
+  <arg name="timeZone" default="1" />
+  <arg name="updateTime" default="40" />
+
+    <node pkg="lms1xx" name="lms1xx" type="LMS1xx_node">
+       <param name="host" value="$(arg host)" />
+       <param name="useNTP" value="$(arg useNTP)" />
+       <param name="NTProle" value="$(arg NTProle)" />
+       <param name="timeSyncIfc" value="$(arg timeSyncIfc)" />
+       <param name="serverIP" value="$(arg serverIP)" />
+       <param name="timeZone" value="$(arg timeZone)" />
+       <param name="updateTime" value="$(arg updateTime)" />
+    </node>
 </launch>

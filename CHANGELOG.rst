@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.6 (2017-05-04)
+------------------
 * Added max/min angle to gazebo plugin.
 * [ros params] Adding 'port' parameter. (`#35 <https://github.com/clearpathrobotics/LMS1xx/issues/35>`_)
 * Add robot namespace to lidar plugin

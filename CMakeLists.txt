@@ -9,7 +9,10 @@ target_link_libraries(LMS1xx ${console_bridge_LIBRARIES})
 
 # Regular catkin package follows.
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
-catkin_package(CATKIN_DEPENDS roscpp)
+catkin_package(
+INCLUDE_DIRS
+    include
+CATKIN_DEPENDS roscpp)
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(LMS1xx_node src/LMS1xx_node.cpp)
@@ -23,6 +26,10 @@ install(TARGETS LMS1xx LMS1xx_node LMS1xx_NTP_diagnostic
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+install(DIRECTORY include/lms1xx/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE)
 
 install(DIRECTORY meshes launch urdf
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

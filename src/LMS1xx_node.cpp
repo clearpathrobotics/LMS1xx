@@ -23,7 +23,7 @@
 
 #include <csignal>
 #include <cstdio>
-#include <LMS1xx/LMS1xx.h>
+#include <lms1xx/LMS1xx.h>
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 #define DEG2RAD M_PI/180.0

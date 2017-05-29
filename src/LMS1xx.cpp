@@ -33,7 +33,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "LMS1xx/LMS1xx.h"
+#include "lms1xx/LMS1xx.h"
 #include "console_bridge/console.h"
 
 #include <time.h>

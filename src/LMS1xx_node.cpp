@@ -34,7 +34,6 @@ int main(int argc, char **argv)
   // laser data
   LMS1xx laser;
   scanCfg cfg;
-  scanOutputRange outputRange;
   scanDataCfg dataCfg;
   sensor_msgs::LaserScan scan_msg;
 
@@ -66,9 +65,8 @@ int main(int argc, char **argv)
     ROS_DEBUG("Logging in to laser.");
     laser.login();
     cfg = laser.getScanCfg();
-    outputRange = laser.getScanOutputRange();
 
-    if (cfg.scaningFrequency != 5000)
+    if (cfg.scaningFrequency != 5000 && cfg.scaningFrequency != 2500)
     {
       laser.disconnect();
       ROS_WARN("Unable to get laser output range. Retrying.");
@@ -80,23 +78,21 @@ int main(int argc, char **argv)
 
     ROS_DEBUG("Laser configuration: scaningFrequency %d, angleResolution %d, startAngle %d, stopAngle %d",
               cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle, cfg.stopAngle);
-    ROS_DEBUG("Laser output range:angleResolution %d, startAngle %d, stopAngle %d",
-              outputRange.angleResolution, outputRange.startAngle, outputRange.stopAngle);
 
     scan_msg.header.frame_id = frame_id;
     scan_msg.range_min = 0.01;
     scan_msg.range_max = 20.0;
     scan_msg.scan_time = 100.0 / cfg.scaningFrequency;
-    scan_msg.angle_increment = (double)outputRange.angleResolution / 10000.0 * DEG2RAD;
-    scan_msg.angle_min = (double)outputRange.startAngle / 10000.0 * DEG2RAD - M_PI / 2;
-    scan_msg.angle_max = (double)outputRange.stopAngle / 10000.0 * DEG2RAD - M_PI / 2;
+    scan_msg.angle_increment = (double)cfg.angleResolution / 10000.0 * DEG2RAD;
+    scan_msg.angle_min = (double)cfg.startAngle / 10000.0 * DEG2RAD - M_PI / 2;
+    scan_msg.angle_max = (double)cfg.stopAngle / 10000.0 * DEG2RAD - M_PI / 2;
 
-    ROS_DEBUG_STREAM("Device resolution is " << (double)outputRange.angleResolution / 10000.0 << " degrees.");
+    ROS_DEBUG_STREAM("Device resolution is " << (double)cfg.angleResolution / 10000.0 << " degrees.");
     ROS_DEBUG_STREAM("Device frequency is " << (double)cfg.scaningFrequency / 100.0 << " Hz");
 
-    int angle_range = outputRange.stopAngle - outputRange.startAngle;
-    int num_values = angle_range / outputRange.angleResolution ;
-    if (angle_range % outputRange.angleResolution == 0)
+    int angle_range = cfg.stopAngle - cfg.startAngle;
+    int num_values = angle_range / cfg.angleResolution ;
+    if (angle_range % cfg.angleResolution == 0)
     {
       // Include endpoint
       ++num_values;
@@ -105,7 +101,7 @@ int main(int argc, char **argv)
     scan_msg.intensities.resize(num_values);
 
     scan_msg.time_increment =
-      (outputRange.angleResolution / 10000.0)
+      (cfg.angleResolution / 10000.0)
       / 360.0
       / (cfg.scaningFrequency / 100.0);
 

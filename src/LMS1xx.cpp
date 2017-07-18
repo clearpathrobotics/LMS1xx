@@ -339,7 +339,7 @@ bool LMS1xx::getScanData(scanData* scan_data)
       // Will return pointer if a complete message exists in the buffer,
       // otherwise will return null.
       char* buffer_data = buffer_.getNextBuffer();
-
+      
       if (buffer_data)
       {
         parseScanData(buffer_data, scan_data);
@@ -358,39 +358,40 @@ bool LMS1xx::getScanData(scanData* scan_data)
 
 void LMS1xx::parseScanData(char* buffer, scanData* data)
 {
-  char* tok = strtok(buffer, " "); //Type of command
-  tok = strtok(NULL, " "); //Command
-  tok = strtok(NULL, " "); //VersionNumber
-  tok = strtok(NULL, " "); //DeviceNumber
-  tok = strtok(NULL, " "); //Serial number
-  tok = strtok(NULL, " "); //DeviceStatus
-  tok = strtok(NULL, " "); //MessageCounter
-  tok = strtok(NULL, " "); //ScanCounter
-  tok = strtok(NULL, " "); //PowerUpDuration
-  tok = strtok(NULL, " "); //TransmissionDuration
+
+  char* tok = strtok_r(buffer, " ",&strtok_saveptr); //Type of command
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Command
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //VersionNumber
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //DeviceNumber
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Serial number
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //DeviceStatus
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //MessageCounter
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //ScanCounter
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //PowerUpDuration
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //TransmissionDuration
   uint32_t PowerUpDuration;
   sscanf(tok, "%X", &PowerUpDuration);
   logDebug("PowerUpDuration : %d\n", PowerUpDuration);
   data->msg_startup_usec = PowerUpDuration;
 
-  tok = strtok(NULL, " "); //InputStatus
-  tok = strtok(NULL, " "); //OutputStatus
-  tok = strtok(NULL, " "); //ReservedByteA
-  tok = strtok(NULL, " "); //ScanningFrequency
-  tok = strtok(NULL, " "); //MeasurementFrequency
-  tok = strtok(NULL, " ");
-  tok = strtok(NULL, " ");
-  tok = strtok(NULL, " ");
-  tok = strtok(NULL, " "); //NumberEncoders
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //InputStatus
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //OutputStatus
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //ReservedByteA
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //ScanningFrequency
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //MeasurementFrequency
+  tok = strtok_r(NULL, " ",&strtok_saveptr);
+  tok = strtok_r(NULL, " ",&strtok_saveptr);
+  tok = strtok_r(NULL, " ",&strtok_saveptr);
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //NumberEncoders
   int NumberEncoders;
   sscanf(tok, "%d", &NumberEncoders);
   for (int i = 0; i < NumberEncoders; i++)
   {
-    tok = strtok(NULL, " "); //EncoderPosition
-    tok = strtok(NULL, " "); //EncoderSpeed
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //EncoderPosition
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //EncoderSpeed
   }
 
-  tok = strtok(NULL, " "); //NumberChannels16Bit
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //NumberChannels16Bit
   int NumberChannels16Bit;
   sscanf(tok, "%d", &NumberChannels16Bit);
   logDebug("NumberChannels16Bit : %d", NumberChannels16Bit);
@@ -399,8 +400,9 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   {
     int type = -1; // 0 DIST1 1 DIST2 2 RSSI1 3 RSSI2
     char content[6];
-    tok = strtok(NULL, " "); //MeasuredDataContent
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //MeasuredDataContent
     sscanf(tok, "%s", content);
+
     if (!strcmp(content, "DIST1"))
     {
       type = 0;
@@ -417,11 +419,11 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     {
       type = 3;
     }
-    tok = strtok(NULL, " "); //ScalingFactor
-    tok = strtok(NULL, " "); //ScalingOffset
-    tok = strtok(NULL, " "); //Starting angle
-    tok = strtok(NULL, " "); //Angular step width
-    tok = strtok(NULL, " "); //NumberData
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //ScalingFactor
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //ScalingOffset
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //Starting angle
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //Angular step width
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //NumberData
     int NumberData;
     sscanf(tok, "%X", &NumberData);
     logDebug("NumberData : %d", NumberData);
@@ -446,7 +448,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     for (int i = 0; i < NumberData; i++)
     {
       int dat;
-      tok = strtok(NULL, " "); //data
+      tok = strtok_r(NULL, " ",&strtok_saveptr); //data
       sscanf(tok, "%X", &dat);
 
       if (type == 0)
@@ -469,7 +471,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     }
   }
 
-  tok = strtok(NULL, " "); //NumberChannels8Bit
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //NumberChannels8Bit
   int NumberChannels8Bit;
   sscanf(tok, "%d", &NumberChannels8Bit);
   logDebug("NumberChannels8Bit : %d\n", NumberChannels8Bit);
@@ -478,7 +480,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   {
     int type = -1;
     char content[6];
-    tok = strtok(NULL, " "); //MeasuredDataContent
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //MeasuredDataContent
     sscanf(tok, "%s", content);
     if (!strcmp(content, "DIST1"))
     {
@@ -496,11 +498,11 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     {
       type = 3;
     }
-    tok = strtok(NULL, " "); //ScalingFactor
-    tok = strtok(NULL, " "); //ScalingOffset
-    tok = strtok(NULL, " "); //Starting angle
-    tok = strtok(NULL, " "); //Angular step width
-    tok = strtok(NULL, " "); //NumberData
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //ScalingFactor
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //ScalingOffset
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //Starting angle
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //Angular step width
+    tok = strtok_r(NULL, " ",&strtok_saveptr); //NumberData
     int NumberData;
     sscanf(tok, "%X", &NumberData);
     logDebug("NumberData : %d\n", NumberData);
@@ -524,7 +526,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     for (int i = 0; i < NumberData; i++)
     {
       int dat;
-      tok = strtok(NULL, " "); //data
+      tok = strtok_r(NULL, " ",&strtok_saveptr); //data
       sscanf(tok, "%X", &dat);
 
       if (type == 0)
@@ -546,40 +548,40 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     }
   }
 
-  tok = strtok(NULL, " "); //PositionDataEnable
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //PositionDataEnable
   int PositionDataEnable;
   sscanf(tok, "%d", &PositionDataEnable);
   logDebug("NumberChannels8Bit : %d\n", PositionDataEnable);
   if(PositionDataEnable == 1){
-  tok = strtok(NULL, " "); //X position
-  tok = strtok(NULL, " "); //Y position
-  tok = strtok(NULL, " "); //Z position
-  tok = strtok(NULL, " "); //X rotation
-  tok = strtok(NULL, " "); //Y rotation
-  tok = strtok(NULL, " "); //Z rotation
-  tok = strtok(NULL, " "); //rotations type
-  tok = strtok(NULL, " "); //Transmits the name of device
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //X position
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Y position
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Z position
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //X rotation
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Y rotation
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Z rotation
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //rotations type
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Transmits the name of device
   }
 
-  tok = strtok(NULL, " "); //NameEnable
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //NameEnable
   int NameEnable;
   sscanf(tok, "%d", &NameEnable);
   logDebug("NameEnable : %d\n", NameEnable);
   if(NameEnable == 1){
-  tok = strtok(NULL, " "); //Length of name
-  tok = strtok(NULL, " "); //Device name in characters
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Length of name
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Device name in characters
   }
 
-  tok = strtok(NULL, " "); //CommentEnable
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //CommentEnable
   int CommentEnable;
   sscanf(tok, "%d", &CommentEnable);
   logDebug("CommentEnable : %d\n", CommentEnable);
   if(CommentEnable == 1){
-  tok = strtok(NULL, " "); //Length of comment
-  tok = strtok(NULL, " "); //Transmits a comment in characters
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Length of comment
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //Transmits a comment in characters
   }
 
-  tok = strtok(NULL, " "); //TimeEnable
+  tok = strtok_r(NULL, " ",&strtok_saveptr); //TimeEnable
   int TimeEnable;
   sscanf(tok, "%d", &TimeEnable);
   logDebug("TimeEnable : %d\n", TimeEnable);
@@ -587,38 +589,38 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   struct tm msg_time = {0};
   //Year
   uint16_t year; 
-  tok = strtok(NULL, " "); 
+  tok = strtok_r(NULL, " ",&strtok_saveptr); 
   sscanf(tok, "%hX", &year);
   msg_time.tm_year = (int) year - 1900;
   logDebug("NTP year: %hX\n", year);
   logDebug("NTP year: %d\n", msg_time.tm_year);
   // Month
   uint8_t int_8_buf; 
-  tok = strtok(NULL, " "); 
+  tok = strtok_r(NULL, " ",&strtok_saveptr); 
   sscanf(tok, "%hhX", &int_8_buf);
   msg_time.tm_mon = (int) int_8_buf - 1;
   logDebug("NTP month: %hhX\n", int_8_buf);
 
   // Day
-  tok = strtok(NULL, " "); 
+  tok = strtok_r(NULL, " ",&strtok_saveptr); 
   sscanf(tok, "%hhX", &int_8_buf);
   msg_time.tm_mday = (int) int_8_buf;
   logDebug("NTP day: %hhX\n", int_8_buf);
 
   // Hour
-  tok = strtok(NULL, " "); 
+  tok = strtok_r(NULL, " ",&strtok_saveptr); 
   sscanf(tok, "%hhX", &int_8_buf);
   msg_time.tm_hour = (int) int_8_buf;
   logDebug("NTP hour: %hhX\n", int_8_buf);
 
   // Minute
-  tok = strtok(NULL, " "); 
+  tok = strtok_r(NULL, " ",&strtok_saveptr); 
   sscanf(tok, "%hhX", &int_8_buf);
   msg_time.tm_min = (int) int_8_buf;
   logDebug("NTP minute: %hhX\n", int_8_buf);
 
   // Second
-  tok = strtok(NULL, " "); 
+  tok = strtok_r(NULL, " ",&strtok_saveptr); 
   sscanf(tok, "%hhX", &int_8_buf);
   msg_time.tm_sec = (int) int_8_buf;
   data->msg_sec = mktime(&msg_time);
@@ -626,7 +628,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
 
   // Microsecond
   uint32_t microsecond; 
-  tok = strtok(NULL, " "); 
+  tok = strtok_r(NULL, " ",&strtok_saveptr); 
   sscanf(tok, "%X", &microsecond);
   data->msg_usec = microsecond ;
   logDebug("NTP usec: %X\n", microsecond);  

@@ -176,11 +176,13 @@ protected:
   * @brief Receive single scan message.
   * @param data pointer to scanData buffer structure.
   */
-  static void parseScanData(char* buf, scanData* data);
+  void parseScanData(char* buf, scanData* data);
 
+private:
   bool connected_;
   LMSBuffer buffer_;
   int socket_fd_;
+  char* strtok_saveptr;
 };
 
 #endif /* LMS1XX_H_ */

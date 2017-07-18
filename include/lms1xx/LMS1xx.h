@@ -24,8 +24,8 @@
 #ifndef LMS1XX_H_
 #define LMS1XX_H_
 
-#include <LMS1xx/lms_buffer.h>
-#include <LMS1xx/lms_structs.h>
+#include <lms1xx/lms_buffer.h>
+#include <lms1xx/lms_structs.h>
 #include <string>
 #include <stdint.h>
 
@@ -61,6 +61,15 @@ public:
   */
   void connect(std::string host, int port = 2111);
 
+  /*!
+  * @brief get max time offset and delay.
+  */
+  NTPstatus getNTPstatus() const;
+  
+  /*!
+  * @brief set NTP settings.
+  */
+  void setNTPsettings(const NTPcfg &cfg);
   /*!
   * @brief Disconnect from LMS1xx device.
   */
@@ -167,11 +176,13 @@ protected:
   * @brief Receive single scan message.
   * @param data pointer to scanData buffer structure.
   */
-  static void parseScanData(char* buf, scanData* data);
+  void parseScanData(char* buf, scanData* data);
 
+private:
   bool connected_;
   LMSBuffer buffer_;
   int socket_fd_;
+  char* strtok_saveptr;
 };
 
 #endif /* LMS1XX_H_ */

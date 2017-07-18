@@ -60,6 +60,67 @@ struct scanCfg
 };
 
 /*!
+* @class NTProleCfg
+* @brief Structure containing NTP role configuration.
+*
+* @author Wojciech Dudek
+*/
+
+struct NTPcfg
+{
+  /*!
+   * @brief NTP role.
+   * None: 0
+   * Client: 1
+   * Server: 2
+   */
+  int NTProle;
+  /*!
+   * @brief Time synchronization interface.
+   * Ethernet: 0
+   * CAN: 1
+   */
+  int timeSyncIfc;
+  /*!
+   * @brief Time server IP address.
+   * [0].[1].[2].[3]
+   */
+  int serverIP[4];
+  /*!
+   * @brief Time zone.
+   * Set values in number of hours relative to GMT, hex specially coded
+   * [GMT + …] -12d … +12d (00h … 18h)
+   */
+  int timeZone;
+  /*!
+   * @brief Update time.
+   * Set values in seconds
+   */
+  int updateTime;
+};
+
+/*!
+* @class NTProleCfg
+* @brief Structure containing NTP status.
+*
+* @author Wojciech Dudek
+*/
+
+struct NTPstatus
+{
+  /*!
+   * @brief Read maximum offset time.
+   * [Seconds as float according to IEEE754]
+   */
+  float maxOffsetNTP;
+  /*!
+   * @brief Delay time.
+   * [Seconds as float according to IEEE754]
+   */
+  float timeDelay;
+};
+
+/*!
 * @class scanDataCfg
 * @brief Structure containing scan data configuration.
 *
@@ -201,6 +262,24 @@ struct scanData
    *
    */
   uint16_t rssi2[1082];
+
+  /*!
+   * @brief Time stamp of the msg - seconds
+   *
+   */
+  time_t msg_sec;
+
+  /*!
+   * @brief Time stamp of the msg - micro seconds
+   *
+   */
+  uint32_t msg_usec;
+
+  /*!
+   * @brief Time since start up - micro seconds
+   *
+   */
+  uint32_t msg_startup_usec;
 };
 
 #endif  // LMS1XX_LMS_STRUCTS_H_

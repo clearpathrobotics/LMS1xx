@@ -1,22 +1,33 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(lms1xx)
+
+find_package(Threads REQUIRED)
 
 # Build ROS-independent library.
 find_package(console_bridge REQUIRED)
 include_directories(include ${console_bridge_INCLUDE_DIRS})
-add_library(LMS1xx src/LMS1xx.cpp)
-target_link_libraries(LMS1xx ${console_bridge_LIBRARIES})
+
+set(LMS1xx_TAG "77fa47e3efa87634bd5f597e0758c4d304a1d3cd")
+file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
+include(ExternalProject)
+ExternalProject_Add(lms1xx_src
+  GIT_REPOSITORY https://github.com/EasyMile/lms1xx.git
+  GIT_TAG ${LMS1xx_TAG}
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}
+)
 
 # Regular catkin package follows.
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
 catkin_package(CATKIN_DEPENDS roscpp)
+set(CMAKE_CXX_STANDARD 11)
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${CATKIN_DEVEL_PREFIX}/include)
 add_executable(LMS1xx_node src/LMS1xx_node.cpp)
-target_link_libraries(LMS1xx_node LMS1xx ${catkin_LIBRARIES})
+add_dependencies(LMS1xx_node lms1xx_src)
+target_link_libraries(LMS1xx_node ${catkin_LIBRARIES} ${CATKIN_DEVEL_PREFIX}/lib/liblms1xx.a ${CMAKE_THREAD_LIBS_INIT})
 
-
-install(TARGETS LMS1xx LMS1xx_node
+install(TARGETS LMS1xx_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

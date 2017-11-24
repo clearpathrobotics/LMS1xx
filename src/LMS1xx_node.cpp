@@ -41,6 +41,7 @@ int main(int argc, char **argv)
   // parameters
   std::string host;
   std::string frame_id;
+  bool inf_range;
   int port;
 
   ros::init(argc, argv, "lms1xx");
@@ -50,6 +51,7 @@ int main(int argc, char **argv)
 
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
+  n.param<bool>("publish_min_range_as_inf", inf_range, false);
   n.param<int>("port", port, 2111);
 
   while (ros::ok())
@@ -178,7 +180,14 @@ int main(int argc, char **argv)
       {
         for (int i = 0; i < data.dist_len1; i++)
         {
-          scan_msg.ranges[i] = data.dist1[i] * 0.001;
+          float range_data = data.dist1[i] * 0.001;
+
+          if(inf_range && range_data < scan_msg.range_min){
+            scan_msg.ranges[i] = std::numeric_limits<float>::infinity();
+          }
+          else{
+            scan_msg.ranges[i] = range_data;
+          }
         }
 
         for (int i = 0; i < data.rssi_len1; i++)

@@ -60,7 +60,7 @@ public:
     if (total_length_ == 0)
     {
       // Buffer is empty, no scan data present.
-      logDebug("Empty buffer, nothing to return.");
+      logWarn("Empty buffer, nothing to return.");
       return NULL;
     }
 
@@ -93,6 +93,7 @@ public:
 
     // Null-terminate buffer.
     *end_of_first_message_ = 0;
+logDebug("Returning %s",buffer_);
     return buffer_;
   }
 

@@ -5,6 +5,7 @@ project(lms1xx)
 find_package(console_bridge REQUIRED)
 include_directories(include ${console_bridge_INCLUDE_DIRS})
 add_library(LMS1xx src/LMS1xx.cpp)
+set_property(TARGET LMS1xx PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(LMS1xx ${console_bridge_LIBRARIES})
 
 # Regular catkin package follows.

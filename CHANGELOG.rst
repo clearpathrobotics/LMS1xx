@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2019-07-16)
+------------------
 * Updates for console bridge deprecated macros
 * Fixed warning about inconsistent namespace redefinitions for xmlns:xacro.
 * Fixed formatting

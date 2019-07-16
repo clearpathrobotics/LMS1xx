@@ -5,11 +5,12 @@ project(lms1xx)
 find_package(console_bridge REQUIRED)
 include_directories(include ${console_bridge_INCLUDE_DIRS})
 add_library(LMS1xx src/LMS1xx.cpp)
+set_property(TARGET LMS1xx PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(LMS1xx ${console_bridge_LIBRARIES})
 
 # Regular catkin package follows.
 find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs)
-catkin_package(CATKIN_DEPENDS roscpp)
+catkin_package(CATKIN_DEPENDS roscpp sensor_msgs INCLUDE_DIRS include LIBRARIES LMS1xx)
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(LMS1xx_node src/LMS1xx_node.cpp)

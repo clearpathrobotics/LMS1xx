@@ -2,6 +2,14 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Updates for console bridge deprecated macros
+* Fixed warning about inconsistent namespace redefinitions for xmlns:xacro.
+* Fixed formatting
+* Added inf to be set for min range
+* Contributors: Dave Niewinski, Tony Baltovski
+
 0.1.6 (2017-05-04)
 ------------------
 * Added max/min angle to gazebo plugin.

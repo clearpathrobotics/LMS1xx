@@ -27,13 +27,15 @@ protected:
   scanCfg cfg;
   scanOutputRange outputRange;
   scanDataCfg dataCfg;
-  ros::Publisher scan_pub;
+  ros::Publisher scan_pub, scan2_pub;
 
   // parameters
   std::string host;
   std::string frame_id;
   bool inf_range;
+  bool publish_2nd_pulse;
   int port;
+  float range_min, range_max;
 
   ros::NodeHandle nh, n;
 
@@ -52,9 +54,17 @@ void LMS1xxNodelet::onInit() {
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
   n.param<bool>("publish_min_range_as_inf", inf_range, false);
+  n.param<bool>("publish_2nd_pulse", publish_2nd_pulse, false);
+  n.param<float>("range_min", range_min, 0.01);
+  n.param<float>("range_min", range_max, 20.0);
   n.param<int>("port", port, 2111);
 
+  if (publish_2nd_pulse)
+    NODELET_DEBUG("Reading and publishing also second laser reflections.");
+
   scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
+  if (publish_2nd_pulse)
+    scan2_pub = nh.advertise<sensor_msgs::LaserScan>("scan_2nd_pulse", 1);
 
   thread = std::thread(&LMS1xxNodelet::loop, this);
 }
@@ -92,16 +102,17 @@ void LMS1xxNodelet::loop() {
         outputRange.stopAngle);
 
     sensor_msgs::LaserScanPtr scan_msg(new sensor_msgs::LaserScan());
-    
-    scan_msg->header.frame_id = frame_id;
-    scan_msg->range_min = 0.01;
-    scan_msg->range_max = 20.0;
-    scan_msg->scan_time = 100.0 / cfg.scaningFrequency;
-    scan_msg->angle_increment =
+    sensor_msgs::LaserScanPtr scan2_msg(new sensor_msgs::LaserScan());
+
+    scan_msg->header.frame_id = scan2_msg->header.frame_id = frame_id;
+    scan_msg->range_min = scan2_msg->range_min = range_min;
+    scan_msg->range_max = scan2_msg->range_max = range_max;
+    scan_msg->scan_time = scan2_msg->scan_time = 100.0 / cfg.scaningFrequency;
+    scan_msg->angle_increment = scan2_msg->angle_increment =
         static_cast<double>(outputRange.angleResolution / 10000.0 * DEG2RAD);
-    scan_msg->angle_min = static_cast<double>(
+    scan_msg->angle_min = scan2_msg->angle_min = static_cast<double>(
         outputRange.startAngle / 10000.0 * DEG2RAD - M_PI / 2);
-    scan_msg->angle_max = static_cast<double>(
+    scan_msg->angle_max = scan2_msg->angle_max = static_cast<double>(
         outputRange.stopAngle / 10000.0 * DEG2RAD - M_PI / 2);
 
     NODELET_DEBUG_STREAM("Device resolution is "
@@ -118,15 +129,20 @@ void LMS1xxNodelet::loop() {
     }
     scan_msg->ranges.resize(num_values);
     scan_msg->intensities.resize(num_values);
+    if (publish_2nd_pulse) {
+      scan2_msg->ranges.resize(num_values);
+      scan2_msg->intensities.resize(num_values);
+    }
 
-    scan_msg->time_increment = (outputRange.angleResolution / 10000.0) / 360.0 /
-                              (cfg.scaningFrequency / 100.0);
+    scan_msg->time_increment = scan2_msg->time_increment =
+        (outputRange.angleResolution / 10000.0) / 360.0 /
+        (cfg.scaningFrequency / 100.0);
 
     NODELET_DEBUG_STREAM("Time increment is "
                          << static_cast<int>(scan_msg->time_increment * 1000000)
                          << " microseconds");
 
-    dataCfg.outputChannel = 1;
+    dataCfg.outputChannel = publish_2nd_pulse ? 3 : 1;
     dataCfg.remission = true;
     dataCfg.resolution = 1;
     dataCfg.encoder = 0;
@@ -182,14 +198,15 @@ void LMS1xxNodelet::loop() {
     while (this->ok()) {
       ros::Time start = ros::Time::now();
 
-      scan_msg->header.stamp = start;
+      scan_msg->header.stamp = scan2_msg->header.stamp = start;
       ++scan_msg->header.seq;
+      ++scan2_msg->header.seq;
 
       scanData data;
       NODELET_DEBUG("Reading scan data.");
       if (laser.getScanData(&data)) {
         for (int i = 0; i < data.dist_len1; i++) {
-          float range_data = data.dist1[i] * 0.001;
+          float range_data = data.dist1[i] * 0.001f;
 
           if (inf_range && range_data < scan_msg->range_min) {
             scan_msg->ranges[i] = std::numeric_limits<float>::infinity();
@@ -204,6 +221,25 @@ void LMS1xxNodelet::loop() {
 
         NODELET_DEBUG("Publishing scan data.");
         scan_pub.publish(scan_msg);
+
+        if (publish_2nd_pulse) {
+          for (int i = 0; i < data.dist_len2; i++) {
+            float range_data = data.dist2[i] * 0.001f;
+
+            if (inf_range && range_data < scan2_msg->range_min) {
+              scan2_msg->ranges[i] = std::numeric_limits<float>::infinity();
+            } else {
+              scan2_msg->ranges[i] = range_data;
+            }
+          }
+
+          for (int i = 0; i < data.rssi_len2; i++) {
+            scan2_msg->intensities[i] = data.rssi2[i];
+          }
+
+          NODELET_DEBUG("Publishing second pulse scan data.");
+          scan2_pub.publish(scan2_msg);
+        }
       } else {
         NODELET_ERROR(
             "Laser timed out on delivering scan, attempting to reinitialize.");

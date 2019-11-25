@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   n.param<bool>("publish_min_range_as_inf", inf_range, false);
   n.param<bool>("publish_2nd_pulse", publish_2nd_pulse, false);
   n.param<float>("range_min", range_min, 0.01);
-  n.param<float>("range_min", range_max, 20.0);
+  n.param<float>("range_max", range_max, 20.0);
   n.param<int>("port", port, 2111);
 
   while (ros::ok())

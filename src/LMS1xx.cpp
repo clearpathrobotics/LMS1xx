@@ -363,6 +363,27 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
       data->rssi_len2 = NumberData;
     }
 
+
+    /*
+     * TODO: there are range/rssi values with special meaning!
+     *
+     * LMDscandata - reserved valuesValid distance measurement values are values starting from 16d  upwards;
+     * everything below  has the  following meaning:
+     *
+     * DIST  RSSI  Description
+     * 0d    0h    no meas value detected; means that in the angle, there was no valid measurement
+     *             value. Probably the object to measure was out of the range of the or the object
+     *             was reflecting too less light back (black objects)
+     * 1d    FFFFh (16Bit output)
+     *       FFh(8Bit output)
+     *             dazzled, blinded
+     * 2d    0h    implausible measurement values
+     * 3d    0h    value was set to invalid by a filter (Echo Filter,Particle Filterin old firmware)
+     * 4–15d 0h    reserved, at the moment not given out, if there occurs a value in that range any
+     *             way perform a Softwareupdate
+     * ≥16d  >0h   valid measurement val
+     */
+
     for (int i = 0; i < NumberData; i++)
     {
       int dat;

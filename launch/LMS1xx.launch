@@ -1,8 +1,23 @@
 <launch>
   <arg name="host" default="192.168.1.14" />
   <arg name="publish_min_range_as_inf" default="false" />
-  <node pkg="lms1xx" name="lms1xx" type="LMS1xx_node">
+  <arg name="nodelet_manager" default="" />
+  <arg name="publish_2nd_pulse" default="false" />
+  <arg name="range_min" default="0.01" />
+  <arg name="range_max" default="20.0" />
+
+  <node pkg="lms1xx" name="lms1xx" type="LMS1xx_node" if="$(eval nodelet_manager=='')">
     <param name="host" value="$(arg host)" />
     <param name="publish_min_range_as_inf" value="$(arg publish_min_range_as_inf)" />
+    <param name="publish_2nd_pulse" value="$(arg publish_2nd_pulse)" />
+    <param name="range_min" value="$(arg range_min)" />
+    <param name="range_max" value="$(arg range_max)" />
+  </node>
+  <node pkg="nodelet" name="lms1xx" type="nodelet" args="load lms1xx/LMS1xx_nodelet $(arg nodelet_manager)" if="$(eval nodelet_manager!='')">
+    <param name="host" value="$(arg host)" />
+    <param name="publish_min_range_as_inf" value="$(arg publish_min_range_as_inf)" />
+    <param name="publish_2nd_pulse" value="$(arg publish_2nd_pulse)" />
+    <param name="range_min" value="$(arg range_min)" />
+    <param name="range_max" value="$(arg range_max)" />
   </node>
 </launch>

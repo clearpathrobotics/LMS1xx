@@ -1,0 +1,7 @@
+<library path="lib/libLMS1xx_nodelet">
+  <class name="lms1xx/LMS1xx_nodelet" type="lms1xx::LMS1xxNodelet" base_class_type="nodelet::Nodelet">
+    <description>
+      Nodelet version of LMS1xx driver.
+    </description>
+  </class>
+</library>

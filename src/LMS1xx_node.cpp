@@ -38,22 +38,28 @@ int main(int argc, char **argv)
   scanCfg cfg;
   scanOutputRange outputRange;
   scanDataCfg dataCfg;
-  sensor_msgs::LaserScan scan_msg;
+  sensor_msgs::LaserScan scan_msg, scan2_msg;
 
   // parameters
   std::string host;
   std::string frame_id;
   bool inf_range;
+  bool publish_2nd_pulse;
   int port;
+  float range_min, range_max;
 
   ros::init(argc, argv, "lms1xx");
   ros::NodeHandle nh;
   ros::NodeHandle n("~");
   ros::Publisher scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
+  ros::Publisher scan2_pub = nh.advertise<sensor_msgs::LaserScan>("scan_2nd_pulse", 1);
 
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
   n.param<bool>("publish_min_range_as_inf", inf_range, false);
+  n.param<bool>("publish_2nd_pulse", publish_2nd_pulse, false);
+  n.param<float>("range_min", range_min, 0.01);
+  n.param<float>("range_max", range_max, 20.0);
   n.param<int>("port", port, 2111);
 
   while (ros::ok())
@@ -87,14 +93,16 @@ int main(int argc, char **argv)
     ROS_DEBUG("Laser output range:angleResolution %d, startAngle %d, stopAngle %d",
               outputRange.angleResolution, outputRange.startAngle, outputRange.stopAngle);
 
-    scan_msg.header.frame_id = frame_id;
-    scan_msg.range_min = 0.01;
-    scan_msg.range_max = 20.0;
-    scan_msg.scan_time = 100.0 / cfg.scaningFrequency;
-    scan_msg.angle_increment = static_cast<double>(outputRange.angleResolution / 10000.0 * DEG2RAD);
-    scan_msg.angle_min = static_cast<double>(outputRange.startAngle / 10000.0 * DEG2RAD - M_PI / 2);
-    scan_msg.angle_max = static_cast<double>(outputRange.stopAngle / 10000.0 * DEG2RAD - M_PI / 2);
-
+    scan_msg.header.frame_id = scan2_msg.header.frame_id = frame_id;
+    scan_msg.range_min = scan2_msg.range_min = range_min;
+    scan_msg.range_max = scan2_msg.range_max = range_max;
+    scan_msg.scan_time = scan2_msg.scan_time = 100.0 / cfg.scaningFrequency;
+    scan_msg.angle_increment = scan2_msg.angle_increment =
+        static_cast<double>(outputRange.angleResolution / 10000.0 * DEG2RAD);
+    scan_msg.angle_min = scan2_msg.angle_min = static_cast<double>(
+        outputRange.startAngle / 10000.0 * DEG2RAD - M_PI / 2);
+    scan_msg.angle_max = scan2_msg.angle_max = static_cast<double>(
+        outputRange.stopAngle / 10000.0 * DEG2RAD - M_PI / 2);
     ROS_DEBUG_STREAM("Device resolution is " << (double)outputRange.angleResolution / 10000.0 << " degrees.");
     ROS_DEBUG_STREAM("Device frequency is " << (double)cfg.scaningFrequency / 100.0 << " Hz");
 
@@ -107,15 +115,19 @@ int main(int argc, char **argv)
     }
     scan_msg.ranges.resize(num_values);
     scan_msg.intensities.resize(num_values);
+    if (publish_2nd_pulse) {
+      scan2_msg.ranges.resize(num_values);
+      scan2_msg.intensities.resize(num_values);
+    }
 
-    scan_msg.time_increment =
+    scan_msg.time_increment = scan2_msg.time_increment =
       (outputRange.angleResolution / 10000.0)
       / 360.0
       / (cfg.scaningFrequency / 100.0);
 
     ROS_DEBUG_STREAM("Time increment is " << static_cast<int>(scan_msg.time_increment * 1000000) << " microseconds");
 
-    dataCfg.outputChannel = 1;
+    dataCfg.outputChannel = publish_2nd_pulse ? 3 : 1;
     dataCfg.remission = true;
     dataCfg.resolution = 1;
     dataCfg.encoder = 0;
@@ -173,8 +185,9 @@ int main(int argc, char **argv)
     {
       ros::Time start = ros::Time::now();
 
-      scan_msg.header.stamp = start;
+      scan_msg.header.stamp = scan2_msg.header.stamp = start;
       ++scan_msg.header.seq;
+      ++scan2_msg.header.seq;
 
       scanData data;
       ROS_DEBUG("Reading scan data.");
@@ -182,7 +195,7 @@ int main(int argc, char **argv)
       {
         for (int i = 0; i < data.dist_len1; i++)
         {
-          float range_data = data.dist1[i] * 0.001;
+          float range_data = data.dist1[i] * 0.001f;
 
           if (inf_range && range_data < scan_msg.range_min)
           {
@@ -201,6 +214,25 @@ int main(int argc, char **argv)
 
         ROS_DEBUG("Publishing scan data.");
         scan_pub.publish(scan_msg);
+
+        if (publish_2nd_pulse) {
+          for (int i = 0; i < data.dist_len2; i++) {
+            float range_data = data.dist2[i] * 0.001f;
+
+            if (inf_range && range_data < scan2_msg.range_min) {
+              scan2_msg.ranges[i] = std::numeric_limits<float>::infinity();
+            } else {
+              scan2_msg.ranges[i] = range_data;
+            }
+          }
+
+          for (int i = 0; i < data.rssi_len2; i++) {
+            scan2_msg.intensities[i] = data.rssi2[i];
+          }
+
+          ROS_DEBUG("Publishing second pulse scan data.");
+          scan2_pub.publish(scan2_msg);
+        }
       }
       else
       {

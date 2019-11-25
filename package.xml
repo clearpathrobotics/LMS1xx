@@ -11,6 +11,7 @@
   <license>LGPL</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>nodelet</depend>
   <depend>rosconsole_bridge</depend>
   <depend>roscpp</depend>
   <depend>roscpp_serialization</depend>
@@ -19,4 +20,8 @@
   <test_depend>roslaunch</test_depend>
   <test_depend>roslint</test_depend>
   <test_depend>rosunit</test_depend>
+
+  <export>
+    <nodelet plugin="${prefix}/nodelets.xml" />
+  </export>
 </package>

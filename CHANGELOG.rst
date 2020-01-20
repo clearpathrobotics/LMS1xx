@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.7 (2020-01-19)
+------------------
 * Fixed warning about inconsistent namespace redefinitions for xmlns:xacro.
 * Added inf to be set for min range
 * Contributors: Dave Niewinski, Tony Baltovski

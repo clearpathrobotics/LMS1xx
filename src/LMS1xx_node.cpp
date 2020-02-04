@@ -41,6 +41,8 @@ int main(int argc, char **argv)
   sensor_msgs::LaserScan scan_msg;
 
   // parameters
+  double angle_max;
+  double angle_min;
   std::string host;
   std::string frame_id;
   bool inf_range;
@@ -51,10 +53,19 @@ int main(int argc, char **argv)
   ros::NodeHandle n("~");
   ros::Publisher scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1);
 
+  n.param<double>("angle_max", angle_max, M_PI);
+  n.param<double>("angle_min", angle_min, -M_PI);
   n.param<std::string>("host", host, "192.168.1.2");
   n.param<std::string>("frame_id", frame_id, "laser");
   n.param<bool>("publish_min_range_as_inf", inf_range, false);
   n.param<int>("port", port, 2111);
+
+  if (angle_min > angle_max)
+  {
+    ROS_FATAL("Minimum angle %f exceeds maximum angle %f", angle_min, angle_max);
+    ros::shutdown();
+    return 1;
+  }
 
   while (ros::ok())
   {
@@ -92,19 +103,28 @@ int main(int argc, char **argv)
     scan_msg.range_max = 20.0;
     scan_msg.scan_time = 100.0 / cfg.scaningFrequency;
     scan_msg.angle_increment = static_cast<double>(outputRange.angleResolution / 10000.0 * DEG2RAD);
-    scan_msg.angle_min = static_cast<double>(outputRange.startAngle / 10000.0 * DEG2RAD - M_PI / 2);
-    scan_msg.angle_max = static_cast<double>(outputRange.stopAngle / 10000.0 * DEG2RAD - M_PI / 2);
+
+    const double output_range_start_angle = static_cast<double>(outputRange.startAngle) / 10000.0 * DEG2RAD - M_PI / 2.0;
+    const double output_range_stop_angle = static_cast<double>(outputRange.stopAngle) / 10000.0 * DEG2RAD - M_PI / 2.0;
+    angle_max = std::min(output_range_stop_angle, angle_max);
+    angle_min = std::max(output_range_start_angle, angle_min);
+
+    scan_msg.angle_min = angle_min;
+    scan_msg.angle_max = angle_max;
 
     ROS_DEBUG_STREAM("Device resolution is " << (double)outputRange.angleResolution / 10000.0 << " degrees.");
     ROS_DEBUG_STREAM("Device frequency is " << (double)cfg.scaningFrequency / 100.0 << " Hz");
 
-    int angle_range = outputRange.stopAngle - outputRange.startAngle;
-    int num_values = angle_range / outputRange.angleResolution;
-    if (angle_range % outputRange.angleResolution == 0)
-    {
-      // Include endpoint
-      ++num_values;
-    }
+    const double angle_resolution = static_cast<double>(outputRange.angleResolution) / 10000.0 * DEG2RAD; 
+    const double angle_range = angle_max - angle_min;
+    int num_values = round(angle_range / angle_resolution) + 1;
+
+    // Determine start index for incoming data
+    const int start_idx = std::ceil((angle_min - output_range_start_angle) / angle_resolution);
+
+    ROS_DEBUG_STREAM("Number of ranges is " << num_values);
+    ROS_DEBUG_STREAM("Range start index is " << start_idx);
+
     scan_msg.ranges.resize(num_values);
     scan_msg.intensities.resize(num_values);
 
@@ -180,9 +200,14 @@ int main(int argc, char **argv)
       ROS_DEBUG("Reading scan data.");
       if (laser.getScanData(&data))
       {
-        for (int i = 0; i < data.dist_len1; i++)
+        ROS_ASSERT_MSG(data.dist_len1 == data.rssi_len1,
+                       "Number of ranges (%d) does not match number of intensities (%d)",
+                       data.dist_len1,
+                       data.rssi_len1);
+
+        for (int i = 0; i < num_values; i++)
         {
-          float range_data = data.dist1[i] * 0.001;
+          const float range_data = data.dist1[i + start_idx] * 0.001;
 
           if (inf_range && range_data < scan_msg.range_min)
           {
@@ -192,11 +217,9 @@ int main(int argc, char **argv)
           {
             scan_msg.ranges[i] = range_data;
           }
-        }
 
-        for (int i = 0; i < data.rssi_len1; i++)
-        {
-          scan_msg.intensities[i] = data.rssi1[i];
+
+          scan_msg.intensities[i] = data.rssi1[i + start_idx];
         }
 
         ROS_DEBUG("Publishing scan data.");

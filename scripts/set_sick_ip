@@ -27,7 +27,7 @@
 
 import sys
 import socket
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 class MyHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
@@ -35,16 +35,16 @@ class MyHTMLParser(HTMLParser):
         for attr in attrs:
             attr_list.append(attr[1])
         if (len(attr_list) == 1):
-            print "  ", attr_list[0],
+            print("  ", attr_list[0], end='')
         elif ('IPAddress' in attr_list[0]):
-            print "   ", attr_list[1]
+            print("   ", attr_list[1])
 
 try:
     sys.argv[1]
     sys.argv[2]
 except IndexError:
-    print "Not enough arguments."
-    print "Use: rosrun lms1xx set_sick_ip <MAC_ADDR> <DESIRED_IP_ADDR>"
+    print("Not enough arguments.")
+    print("Use: rosrun lms1xx set_sick_ip <MAC_ADDR> <DESIRED_IP_ADDR>")
     sys.exit()
 
 #set variables
@@ -88,17 +88,17 @@ try:
             data,addr = UDP_SOCK.recvfrom(1024)
 
             if ('<?xml' in data and 'Success' in data):
-                print "Laser found, IP address set succesfully:"
+                print("Laser found, IP address set succesfully:")
                 parser.feed(data)
                 #set IP cmd response from laser doesn't contain the new IP addr,
                 #hence the below print statement.
-                print "   " + STATIC_IP + "\n"
+                print("   " + STATIC_IP + "\n")
         except socket.timeout:
-            print LASER_NOT_FOUND
+            print(LASER_NOT_FOUND)
     else:
-        print LASER_NOT_FOUND
+        print(LASER_NOT_FOUND)
 
 except socket.timeout:
-    print LASER_NOT_FOUND
+    print(LASER_NOT_FOUND)
 
 UDP_SOCK.close()

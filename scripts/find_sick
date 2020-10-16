@@ -69,6 +69,6 @@ while True:
 if (laser_count == 0):
     print("No lasers found.\n")
 else:
-    print()"")
+    print("")
 
 UDP_SOCK.close()

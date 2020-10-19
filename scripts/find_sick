@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Software License Agreement (BSD)
 #
 # @author    Mustafa Safri <msafri@clearpathrobotics.com>
@@ -69,6 +69,6 @@ while True:
 if (laser_count == 0):
     print("No lasers found.\n")
 else:
-    print()"")
+    print("")
 
 UDP_SOCK.close()

@@ -2,6 +2,14 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Changed shebang to python3.
+* Fixed typo in find_sick script.
+* Update the python scripts so they'll work with python3
+* Switched to industrial_ci for TravisCI.
+* Contributors: Chris I-B, Tony Baltovski
+
 0.2.0 (2019-07-16)
 ------------------
 * Updates for console bridge deprecated macros

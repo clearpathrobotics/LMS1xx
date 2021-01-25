@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.0 (2021-01-24)
+------------------
 * Changed shebang to python3.
 * Fixed typo in find_sick script.
 * Update the python scripts so they'll work with python3

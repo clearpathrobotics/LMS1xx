@@ -1,22 +1,31 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>lms1xx</name>
-  <version>0.3.0</version>
-  <description>The lms1xx package contains a basic ROS driver for the SICK LMS1xx line of LIDARs.</description>
+  <version>0.0.1</version>
+  <description>The lms1xx package contains a basic ROS2 driver for the SICK LMS1xx line of LIDARs.</description>
 
   <author>Konrad Banachowicz</author>
-  <maintainer email="mpurvis@clearpathrobotics.com">Mike Purvis</maintainer>
+  <author email="mpurvis@clearpathrobotics.com">Mike Purvis</author>
+  <author email="shravansomashekara.rai@gmail.com">Shravan S Rai</author>
+
+  <maintainer email="shravansomashekara.rai@gmail.com">Shravan S Rai</maintainer>
   <url type="website">http://ros.org/wiki/LMS1xx</url>
 
   <license>LGPL</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>rosconsole_bridge</depend>
-  <depend>roscpp</depend>
-  <depend>roscpp_serialization</depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>geometry_msgs</depend>
+  <depend>laser_geometry</depend>
+  <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>urdf</depend>
+  <depend>xacro</depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
-  <test_depend>roslaunch</test_depend>
-  <test_depend>roslint</test_depend>
-  <test_depend>rosunit</test_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

@@ -43,7 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <!-- Origin of this mesh is the focal point of the LIDAR. -->
-          <mesh filename="package://lms1xx/meshes/sick-lms1xx.dae" />
+          <mesh filename="file://$(find lms1xx)/meshes/sick-lms1xx.dae" />
         </geometry>
       </visual>
       <collision>

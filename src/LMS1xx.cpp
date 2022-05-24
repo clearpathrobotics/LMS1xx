@@ -34,7 +34,7 @@
 #include <unistd.h>
 
 #include "LMS1xx/LMS1xx.h"
-#include "console_bridge/console.h"
+
 
 LMS1xx::LMS1xx() : connected_(false)
 {
@@ -48,7 +48,7 @@ void LMS1xx::connect(std::string host, int port)
 {
   if (!connected_)
   {
-    logDebug("Creating non-blocking socket.");
+    printf("Creating non-blocking socket.");
     socket_fd_ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (socket_fd_)
     {
@@ -57,13 +57,13 @@ void LMS1xx::connect(std::string host, int port)
       stSockAddr.sin_port = htons(port);
       inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
 
-      logDebug("Connecting socket to laser.");
+      printf("Connecting socket to laser.");
       int ret = ::connect(socket_fd_, (struct sockaddr *) &stSockAddr, sizeof(stSockAddr));
 
       if (ret == 0)
       {
         connected_ = true;
-        logDebug("Connected succeeded.");
+        printf("Connected succeeded.");
       }
     }
   }
@@ -87,14 +87,13 @@ void LMS1xx::startMeas()
 {
   char buf[100];
   sprintf(buf, "%c%s%c", 0x02, "sMN LMCstartmeas", 0x03);
-
   write(socket_fd_, buf, strlen(buf));
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    logWarn("invalid packet recieved");
+    printf("invalid packet recieved");
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 }
 
 void LMS1xx::stopMeas()
@@ -106,9 +105,9 @@ void LMS1xx::stopMeas()
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    logWarn("invalid packet recieved");
+    printf("invalid packet recieved");
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 }
 
 status_t LMS1xx::queryStatus()
@@ -120,9 +119,9 @@ status_t LMS1xx::queryStatus()
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    logWarn("invalid packet recieved");
+    printf("invalid packet recieved");
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 
   int ret;
   sscanf((buf + 10), "%d", &ret);
@@ -156,9 +155,9 @@ void LMS1xx::login()
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    logWarn("invalid packet recieved");
+    printf("invalid packet recieved");
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 }
 
 scanCfg LMS1xx::getScanCfg() const
@@ -171,11 +170,11 @@ scanCfg LMS1xx::getScanCfg() const
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    logWarn("invalid packet recieved");
+    printf("invalid packet recieved");
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 
-  sscanf(buf + 1, "%*s %*s %X %*d %X %X %X", &cfg.scaningFrequency,
+  sscanf(buf + 1, "%*s %*s %d %*d %d %d %d", &cfg.scaningFrequency,
          &cfg.angleResolution, &cfg.startAngle, &cfg.stopAngle);
   return cfg;
 }
@@ -201,7 +200,7 @@ void LMS1xx::setScanDataCfg(const scanDataCfg &cfg)
           "sWN LMDscandatacfg", cfg.outputChannel, cfg.remission ? 1 : 0,
           cfg.resolution, cfg.encoder, cfg.position ? 1 : 0,
           cfg.deviceName ? 1 : 0, cfg.timestamp ? 1 : 0, cfg.outputInterval, 0x03);
-  logDebug("TX: %s", buf);
+  printf("TX: %s", buf);
   write(socket_fd_, buf, strlen(buf));
 
   int len = read(socket_fd_, buf, 100);
@@ -218,7 +217,7 @@ scanOutputRange LMS1xx::getScanOutputRange() const
 
   int len = read(socket_fd_, buf, 100);
 
-  sscanf(buf + 1, "%*s %*s %*d %X %X %X", &outputRange.angleResolution,
+  sscanf(buf + 1, "%*s %*s %*d %d %d %d", &outputRange.angleResolution,
          &outputRange.startAngle, &outputRange.stopAngle);
   return outputRange;
 }
@@ -233,10 +232,10 @@ void LMS1xx::scanContinous(int start)
   int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
-    logError("invalid packet recieved");
+    printf("invalid packet recieved");
 
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 }
 
 bool LMS1xx::getScanData(scanData* scan_data)
@@ -254,9 +253,9 @@ bool LMS1xx::getScanData(scanData* scan_data)
     tv.tv_sec = 0;
     tv.tv_usec = 100000;
 
-    logDebug("entering select()", tv.tv_usec);
+    printf("entering select() at %ld", tv.tv_usec);
     int retval = select(socket_fd_ + 1, &rfds, NULL, NULL, &tv);
-    logDebug("returned %d from select()", retval);
+    printf("returned %d from select()", retval);
     if (retval)
     {
       buffer_.readFrom(socket_fd_);
@@ -313,7 +312,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   tok = strtok(NULL, " "); //NumberChannels16Bit
   int NumberChannels16Bit;
   sscanf(tok, "%d", &NumberChannels16Bit);
-  logDebug("NumberChannels16Bit : %d", NumberChannels16Bit);
+  printf("NumberChannels16Bit : %d", NumberChannels16Bit);
 
   for (int i = 0; i < NumberChannels16Bit; i++)
   {
@@ -343,8 +342,8 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     tok = strtok(NULL, " "); //Angular step width
     tok = strtok(NULL, " "); //NumberData
     int NumberData;
-    sscanf(tok, "%X", &NumberData);
-    logDebug("NumberData : %d", NumberData);
+    sscanf(tok, "%d", &NumberData);
+    printf("NumberData : %d", NumberData);
 
     if (type == 0)
     {
@@ -367,7 +366,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     {
       int dat;
       tok = strtok(NULL, " "); //data
-      sscanf(tok, "%X", &dat);
+      sscanf(tok, "%d", &dat);
 
       if (type == 0)
       {
@@ -392,7 +391,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   tok = strtok(NULL, " "); //NumberChannels8Bit
   int NumberChannels8Bit;
   sscanf(tok, "%d", &NumberChannels8Bit);
-  logDebug("NumberChannels8Bit : %d\n", NumberChannels8Bit);
+  printf("NumberChannels8Bit : %d\n", NumberChannels8Bit);
 
   for (int i = 0; i < NumberChannels8Bit; i++)
   {
@@ -422,8 +421,8 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     tok = strtok(NULL, " "); //Angular step width
     tok = strtok(NULL, " "); //NumberData
     int NumberData;
-    sscanf(tok, "%X", &NumberData);
-    logDebug("NumberData : %d\n", NumberData);
+    sscanf(tok, "%d", &NumberData);
+    printf("NumberData : %d\n", NumberData);
 
     if (type == 0)
     {
@@ -445,7 +444,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     {
       int dat;
       tok = strtok(NULL, " "); //data
-      sscanf(tok, "%X", &dat);
+      sscanf(tok, "%d", &dat);
 
       if (type == 0)
       {
@@ -477,9 +476,9 @@ void LMS1xx::saveConfig()
   int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
-    logWarn("invalid packet recieved");
+    printf("invalid packet recieved");
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 }
 
 void LMS1xx::startDevice()
@@ -492,7 +491,7 @@ void LMS1xx::startDevice()
   int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
-    logWarn("invalid packet recieved");
+    printf("invalid packet recieved");
   buf[len] = 0;
-  logDebug("RX: %s", buf);
+  printf("RX: %s", buf);
 }

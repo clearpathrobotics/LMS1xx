@@ -36,7 +36,7 @@
 #include "LMS1xx/LMS1xx.h"
 
 
-LMS1xx::LMS1xx() : connected_(false)
+LMS1xx::LMS1xx() : connected_(false), logger_(rclcpp::get_logger("lms1xx"))
 {
 }
 
@@ -48,7 +48,7 @@ void LMS1xx::connect(std::string host, int port)
 {
   if (!connected_)
   {
-    printf("Creating non-blocking socket.");
+    RCLCPP_DEBUG(logger_, "Creating non-blocking socket.");
     socket_fd_ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (socket_fd_)
     {
@@ -57,13 +57,13 @@ void LMS1xx::connect(std::string host, int port)
       stSockAddr.sin_port = htons(port);
       inet_pton(AF_INET, host.c_str(), &stSockAddr.sin_addr);
 
-      printf("Connecting socket to laser.");
+      RCLCPP_DEBUG(logger_, "Connecting socket to laser.");
       int ret = ::connect(socket_fd_, (struct sockaddr *) &stSockAddr, sizeof(stSockAddr));
 
       if (ret == 0)
       {
         connected_ = true;
-        printf("Connected succeeded.");
+        RCLCPP_DEBUG(logger_, "Connected succeeded.");
       }
     }
   }
@@ -91,9 +91,9 @@ void LMS1xx::startMeas()
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+    RCLCPP_WARN(logger_, "invalid packet recieved");
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 }
 
 void LMS1xx::stopMeas()
@@ -105,9 +105,9 @@ void LMS1xx::stopMeas()
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+    RCLCPP_WARN(logger_, "invalid packet recieved");
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 }
 
 status_t LMS1xx::queryStatus()
@@ -119,9 +119,9 @@ status_t LMS1xx::queryStatus()
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+   RCLCPP_WARN(logger_, "invalid packet recieved");
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 
   int ret;
   sscanf((buf + 10), "%d", &ret);
@@ -155,9 +155,9 @@ void LMS1xx::login()
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+    RCLCPP_WARN(logger_, "invalid packet recieved");
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 }
 
 scanCfg LMS1xx::getScanCfg() const
@@ -170,12 +170,20 @@ scanCfg LMS1xx::getScanCfg() const
 
   int len = read(socket_fd_, buf, 100);
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+    RCLCPP_WARN(logger_, "invalid packet recieved");
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 
-  sscanf(buf + 1, "%*s %*s %d %*d %d %d %d", &cfg.scaningFrequency,
-         &cfg.angleResolution, &cfg.startAngle, &cfg.stopAngle);
+  uint32_t scanningFrequency, angleResolution, startAngle, stopAngle;
+
+  sscanf(buf + 1, "%*s %*s %X %*d %X %X %X", &scanningFrequency,
+         &angleResolution, &startAngle, &stopAngle);
+
+  cfg.scanningFrequency = (int32_t)scanningFrequency;
+  cfg.angleResolution = (int32_t)angleResolution;
+  cfg.startAngle = (int32_t)startAngle;
+  cfg.stopAngle = (int32_t)stopAngle;
+  
   return cfg;
 }
 
@@ -183,7 +191,7 @@ void LMS1xx::setScanCfg(const scanCfg &cfg)
 {
   char buf[100];
   sprintf(buf, "%c%s %X +1 %X %X %X%c", 0x02, "sMN mLMPsetscancfg",
-          cfg.scaningFrequency, cfg.angleResolution, cfg.startAngle,
+          cfg.scanningFrequency, cfg.angleResolution, cfg.startAngle,
           cfg.stopAngle, 0x03);
 
   write(socket_fd_, buf, strlen(buf));
@@ -200,7 +208,7 @@ void LMS1xx::setScanDataCfg(const scanDataCfg &cfg)
           "sWN LMDscandatacfg", cfg.outputChannel, cfg.remission ? 1 : 0,
           cfg.resolution, cfg.encoder, cfg.position ? 1 : 0,
           cfg.deviceName ? 1 : 0, cfg.timestamp ? 1 : 0, cfg.outputInterval, 0x03);
-  printf("TX: %s", buf);
+  RCLCPP_DEBUG(logger_, "TX: %s", buf);
   write(socket_fd_, buf, strlen(buf));
 
   int len = read(socket_fd_, buf, 100);
@@ -215,10 +223,16 @@ scanOutputRange LMS1xx::getScanOutputRange() const
 
   write(socket_fd_, buf, strlen(buf));
 
-  int len = read(socket_fd_, buf, 100);
+  read(socket_fd_, buf, 100);
 
-  sscanf(buf + 1, "%*s %*s %*d %d %d %d", &outputRange.angleResolution,
-         &outputRange.startAngle, &outputRange.stopAngle);
+  uint32_t angleResolution, startAngle, stopAngle;
+  sscanf(buf + 1, "%*s %*s %*d %X %X %X", &angleResolution,
+         &startAngle, &stopAngle);
+
+  outputRange.angleResolution = (int32_t)angleResolution;
+  outputRange.startAngle = (int32_t)startAngle;
+  outputRange.stopAngle = (int32_t)stopAngle;
+
   return outputRange;
 }
 
@@ -232,10 +246,10 @@ void LMS1xx::scanContinous(int start)
   int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+    RCLCPP_WARN(logger_, "invalid packet recieved");
 
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 }
 
 bool LMS1xx::getScanData(scanData* scan_data)
@@ -253,9 +267,9 @@ bool LMS1xx::getScanData(scanData* scan_data)
     tv.tv_sec = 0;
     tv.tv_usec = 100000;
 
-    printf("entering select() at %ld", tv.tv_usec);
+    RCLCPP_DEBUG(logger_, "entering select() at %ld", tv.tv_usec);
     int retval = select(socket_fd_ + 1, &rfds, NULL, NULL, &tv);
-    printf("returned %d from select()", retval);
+    RCLCPP_DEBUG(logger_, "returned %d from select()", retval);
     if (retval)
     {
       buffer_.readFrom(socket_fd_);
@@ -282,6 +296,8 @@ bool LMS1xx::getScanData(scanData* scan_data)
 
 void LMS1xx::parseScanData(char* buffer, scanData* data)
 {
+  auto logger = rclcpp::get_logger("lms1xx");
+
   char* tok = strtok(buffer, " "); //Type of command
   tok = strtok(NULL, " "); //Command
   tok = strtok(NULL, " "); //VersionNumber
@@ -312,7 +328,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   tok = strtok(NULL, " "); //NumberChannels16Bit
   int NumberChannels16Bit;
   sscanf(tok, "%d", &NumberChannels16Bit);
-  printf("NumberChannels16Bit : %d", NumberChannels16Bit);
+  RCLCPP_DEBUG(logger, "NumberChannels16Bit : %d", NumberChannels16Bit);
 
   for (int i = 0; i < NumberChannels16Bit; i++)
   {
@@ -341,9 +357,12 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     tok = strtok(NULL, " "); //Starting angle
     tok = strtok(NULL, " "); //Angular step width
     tok = strtok(NULL, " "); //NumberData
+
+    uint32_t UnsignedNumberData;
     int NumberData;
-    sscanf(tok, "%d", &NumberData);
-    printf("NumberData : %d", NumberData);
+    sscanf(tok, "%X", &UnsignedNumberData);
+    NumberData = (int32_t)UnsignedNumberData;
+    RCLCPP_DEBUG(logger, "NumberData : %d", NumberData);
 
     if (type == 0)
     {
@@ -364,9 +383,11 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
 
     for (int i = 0; i < NumberData; i++)
     {
+      uint32_t unsignedDat;
       int dat;
       tok = strtok(NULL, " "); //data
-      sscanf(tok, "%d", &dat);
+      sscanf(tok, "%X", &unsignedDat);
+      dat = (int32_t)unsignedDat;
 
       if (type == 0)
       {
@@ -391,7 +412,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
   tok = strtok(NULL, " "); //NumberChannels8Bit
   int NumberChannels8Bit;
   sscanf(tok, "%d", &NumberChannels8Bit);
-  printf("NumberChannels8Bit : %d\n", NumberChannels8Bit);
+  RCLCPP_DEBUG(logger, "NumberChannels8Bit : %d\n", NumberChannels8Bit);
 
   for (int i = 0; i < NumberChannels8Bit; i++)
   {
@@ -420,9 +441,12 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     tok = strtok(NULL, " "); //Starting angle
     tok = strtok(NULL, " "); //Angular step width
     tok = strtok(NULL, " "); //NumberData
+    
+    uint32_t UnsignedNumberData;
     int NumberData;
-    sscanf(tok, "%d", &NumberData);
-    printf("NumberData : %d\n", NumberData);
+    sscanf(tok, "%X", &UnsignedNumberData);
+    NumberData = (int32_t)UnsignedNumberData;
+    RCLCPP_DEBUG(logger, "NumberData : %d\n", NumberData);
 
     if (type == 0)
     {
@@ -442,9 +466,11 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
     }
     for (int i = 0; i < NumberData; i++)
     {
+      uint32_t unsignedDat;
       int dat;
       tok = strtok(NULL, " "); //data
-      sscanf(tok, "%d", &dat);
+      sscanf(tok, "%X", &unsignedDat);
+      dat = (int32_t)unsignedDat;
 
       if (type == 0)
       {
@@ -476,9 +502,9 @@ void LMS1xx::saveConfig()
   int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+    RCLCPP_WARN(logger_, "invalid packet recieved");
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 }
 
 void LMS1xx::startDevice()
@@ -491,7 +517,7 @@ void LMS1xx::startDevice()
   int len = read(socket_fd_, buf, 100);
 
   if (buf[0] != 0x02)
-    printf("invalid packet recieved");
+    RCLCPP_WARN(logger_, "invalid packet recieved");
   buf[len] = 0;
-  printf("RX: %s", buf);
+  RCLCPP_DEBUG(logger_, "RX: %s", buf);
 }

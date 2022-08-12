@@ -26,6 +26,8 @@
 
 #include <LMS1xx/lms_buffer.h>
 #include <LMS1xx/lms_structs.h>
+#include <rclcpp/logging.hpp>
+
 #include <string>
 #include <stdint.h>
 
@@ -170,6 +172,7 @@ protected:
   static void parseScanData(char* buf, scanData* data);
 
   bool connected_;
+  rclcpp::Logger logger_;
   LMSBuffer buffer_;
   int socket_fd_;
 };

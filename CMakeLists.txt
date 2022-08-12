@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(lms1xx)
 
-# Default to C99
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
-endif()
-
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -25,6 +20,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 
 add_executable(${PROJECT_NAME} 
   src/LMS1xx_node.cpp
@@ -38,13 +34,12 @@ ament_target_dependencies(
   geometry_msgs
   laser_geometry
   tf2
+  tf2_ros
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-
-target_compile_features(${PROJECT_NAME} PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 install(TARGETS lms1xx
   DESTINATION lib/${PROJECT_NAME})

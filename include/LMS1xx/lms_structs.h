@@ -38,7 +38,7 @@ struct scanCfg
    * @brief Scanning frequency.
    * 1/100 Hz
    */
-  int scaningFrequency;
+  int scanningFrequency;
 
   /*!
    * @brief Scanning resolution.

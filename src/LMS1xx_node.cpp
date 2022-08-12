@@ -43,7 +43,7 @@ LMS1xx_node::LMS1xx_node(rclcpp::NodeOptions options) : Node("LMS1xx_node", opti
   port_ = this->declare_parameter("port", 2111);
   inf_range_ = this->declare_parameter("publish_min_range_as_inf", false);
   laserscan_pub_ =
-      this->create_publisher<sensor_msgs::msg::LaserScan>("/scan", 1);
+      this->create_publisher<sensor_msgs::msg::LaserScan>("scan", 1);
 
 }
 
@@ -96,13 +96,13 @@ void LMS1xx_node::construct_scan()
   scan_msg_.header.frame_id = frame_id_;
   scan_msg_.range_min = 0.01;
   scan_msg_.range_max = 20.0;
-  scan_msg_.scan_time = 100.0 / cfg_.scaningFrequency;
+  scan_msg_.scan_time = 100.0 / cfg_.scanningFrequency;
   scan_msg_.angle_increment =
-      ((double)outputRange_.angleResolution / 2) / 10000.0 * DEG2RAD;
+      (double)outputRange_.angleResolution / 10000.0 * DEG2RAD;
   
   scan_msg_.angle_min =
-        ((((double)cfg_.startAngle) / 10000.0) - 90.0) * DEG2RAD;
-  scan_msg_.angle_max = ((((double)cfg_.stopAngle) / 10000.0) - 90.0) * DEG2RAD;
+        ((double)cfg_.startAngle / 10000.0) * DEG2RAD;
+  scan_msg_.angle_max = (((double)cfg_.stopAngle) / 10000.0) * DEG2RAD;
 
   int angle_range = outputRange_.stopAngle - outputRange_.startAngle;
   int num_values = angle_range/ outputRange_.angleResolution;
@@ -117,7 +117,7 @@ void LMS1xx_node::construct_scan()
   scan_msg_.intensities.resize(num_values);
 
   scan_msg_.time_increment = (outputRange_.angleResolution / 10000.0) / 360.0 /
-                            (cfg_.scaningFrequency / 100.0);
+                            (cfg_.scanningFrequency / 100.0);
 }
 
 void LMS1xx_node::get_measurements()
@@ -181,7 +181,7 @@ void LMS1xx_node::get_measurements()
       {
         scan_msg_.intensities[i] = data.rssi1[i];
       }
-      RCLCPP_INFO(this->get_logger(), "Publishing the scan values");
+      RCLCPP_DEBUG(this->get_logger(), "Publishing the scan data");
       publish_scan();
     }
     else

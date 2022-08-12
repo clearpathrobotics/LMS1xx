@@ -6,6 +6,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <chrono>
 #include <memory>
+#include <string>
 
 #include "laser_geometry/laser_geometry.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -13,8 +14,6 @@
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "std_msgs/msg/header.hpp"
-#include "string"
-
 
 
 namespace LMS1xx_node

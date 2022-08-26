@@ -83,6 +83,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <plugin name="${frame}_scan" filename="libgazebo_ros_ray_sensor.so">
           <ros>
             <remapping>~/out:=${topic}</remapping>
+            <qos>
+              <topic name="${topic}">
+                  <publisher>
+                      <reliability>best_effort</reliability>
+                  </publisher>
+              </topic>
+            </qos>
           </ros>
           <frame_name>${frame}</frame_name>
           <robot_namespace>${robot_namespace}</robot_namespace>

@@ -86,7 +86,7 @@ bool LMS1xx::isConnected()
 void LMS1xx::startMeas()
 {
   char buf[100];
-  sprintf(buf, "%c%s%c", 0x02, "sMN LMCstartmeas", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sMN LMCstartmeas", 0x03);
   write(socket_fd_, buf, strlen(buf));
 
   int len = read(socket_fd_, buf, 100);
@@ -99,7 +99,7 @@ void LMS1xx::startMeas()
 void LMS1xx::stopMeas()
 {
   char buf[100];
-  sprintf(buf, "%c%s%c", 0x02, "sMN LMCstopmeas", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sMN LMCstopmeas", 0x03);
 
   write(socket_fd_, buf, strlen(buf));
 
@@ -113,7 +113,7 @@ void LMS1xx::stopMeas()
 status_t LMS1xx::queryStatus()
 {
   char buf[100];
-  sprintf(buf, "%c%s%c", 0x02, "sRN STlms", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sRN STlms", 0x03);
 
   write(socket_fd_, buf, strlen(buf));
 
@@ -133,7 +133,7 @@ void LMS1xx::login()
 {
   char buf[100];
   int result;
-  sprintf(buf, "%c%s%c", 0x02, "sMN SetAccessMode 03 F4724744", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sMN SetAccessMode 03 F4724744", 0x03);
 
   fd_set readset;
   struct timeval timeout;
@@ -164,7 +164,7 @@ scanCfg LMS1xx::getScanCfg() const
 {
   scanCfg cfg;
   char buf[100];
-  sprintf(buf, "%c%s%c", 0x02, "sRN LMPscancfg", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sRN LMPscancfg", 0x03);
 
   write(socket_fd_, buf, strlen(buf));
 
@@ -190,7 +190,7 @@ scanCfg LMS1xx::getScanCfg() const
 void LMS1xx::setScanCfg(const scanCfg &cfg)
 {
   char buf[100];
-  sprintf(buf, "%c%s %X +1 %X %X %X%c", 0x02, "sMN mLMPsetscancfg",
+  //sprintf(buf, "%c%s %X +1 %X %X %X%c", 0x02, "sMN mLMPsetscancfg",
           cfg.scanningFrequency, cfg.angleResolution, cfg.startAngle,
           cfg.stopAngle, 0x03);
 
@@ -204,7 +204,7 @@ void LMS1xx::setScanCfg(const scanCfg &cfg)
 void LMS1xx::setScanDataCfg(const scanDataCfg &cfg)
 {
   char buf[100];
-  sprintf(buf, "%c%s %02X 00 %d %d 0 %02X 00 %d %d 0 %d +%d%c", 0x02,
+  //sprintf(buf, "%c%s %02X 00 %d %d 0 %02X 00 %d %d 0 %d +%d%c", 0x02,
           "sWN LMDscandatacfg", cfg.outputChannel, cfg.remission ? 1 : 0,
           cfg.resolution, cfg.encoder, cfg.position ? 1 : 0,
           cfg.deviceName ? 1 : 0, cfg.timestamp ? 1 : 0, cfg.outputInterval, 0x03);
@@ -219,7 +219,7 @@ scanOutputRange LMS1xx::getScanOutputRange() const
 {
   scanOutputRange outputRange;
   char buf[100];
-  sprintf(buf, "%c%s%c", 0x02, "sRN LMPoutputRange", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sRN LMPoutputRange", 0x03);
 
   write(socket_fd_, buf, strlen(buf));
 
@@ -239,7 +239,7 @@ scanOutputRange LMS1xx::getScanOutputRange() const
 void LMS1xx::scanContinous(int start)
 {
   char buf[100];
-  sprintf(buf, "%c%s %d%c", 0x02, "sEN LMDscandata", start, 0x03);
+  //sprintf(buf, "%c%s %d%c", 0x02, "sEN LMDscandata", start, 0x03);
 
   write(socket_fd_, buf, strlen(buf));
 
@@ -495,7 +495,7 @@ void LMS1xx::parseScanData(char* buffer, scanData* data)
 void LMS1xx::saveConfig()
 {
   char buf[100];
-  sprintf(buf, "%c%s%c", 0x02, "sMN mEEwriteall", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sMN mEEwriteall", 0x03);
 
   write(socket_fd_, buf, strlen(buf));
 
@@ -510,7 +510,7 @@ void LMS1xx::saveConfig()
 void LMS1xx::startDevice()
 {
   char buf[100];
-  sprintf(buf, "%c%s%c", 0x02, "sMN Run", 0x03);
+  //sprintf(buf, "%c%s%c", 0x02, "sMN Run", 0x03);
 
   write(socket_fd_, buf, strlen(buf));
 

@@ -49,11 +49,11 @@ public:
     if (ret > 0)
     {
       total_length_ += ret;
-      printf("Read %d bytes from fd, total length is %d.", ret, total_length_);
+      //printf("Read %d bytes from fd, total length is %d.", ret, total_length_);
     }
     else
     {
-      printf("Buffer read() returned error.");
+      //printf("Buffer read() returned error.");
     }
   }
 
@@ -62,7 +62,7 @@ public:
     if (total_length_ == 0)
     {
       // Buffer is empty, no scan data present.
-      printf("Empty buffer, nothing to return.");
+      //printf("Empty buffer, nothing to return.");
       return NULL;
     }
 
@@ -73,13 +73,13 @@ public:
     if (start_of_message == NULL)
     {
       // None found, buffer reset.
-      printf("No STX found, dropping %d bytes from buffer.", total_length_);
+      //printf("No STX found, dropping %d bytes from buffer.", total_length_);
       total_length_ = 0;
     }
     else if (buffer_ != start_of_message)
     {
       // Start of message found, ahead of the start of buffer. Therefore shift the buffer back.
-      printf("Shifting buffer, dropping %ld bytes, %ld bytes remain.",
+      //printf("Shifting buffer, dropping %ld bytes, %ld bytes remain.",
               (start_of_message - buffer_), total_length_ - (start_of_message - buffer_));
       shiftBuffer(start_of_message);
     }
@@ -89,7 +89,7 @@ public:
     if (end_of_first_message_ == NULL)
     {
       // No end of message found, therefore no message to parse and return.
-      printf("No ETX found, nothing to return.");
+      //printf("No ETX found, nothing to return.");
       return NULL;
     }
 

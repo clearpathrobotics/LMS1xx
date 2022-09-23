@@ -101,8 +101,8 @@ void LMS1xx_node::construct_scan()
       (double)outputRange_.angleResolution / 10000.0 * DEG2RAD;
   
   scan_msg_.angle_min =
-        ((double)cfg_.startAngle / 10000.0) * DEG2RAD;
-  scan_msg_.angle_max = (((double)cfg_.stopAngle) / 10000.0) * DEG2RAD;
+        ((double)cfg_.startAngle / 10000.0) * DEG2RAD - M_PI / 2;
+  scan_msg_.angle_max = (((double)cfg_.stopAngle) / 10000.0) * DEG2RAD - M_PI / 2;
 
   int angle_range = outputRange_.stopAngle - outputRange_.startAngle;
   int num_values = angle_range/ outputRange_.angleResolution;

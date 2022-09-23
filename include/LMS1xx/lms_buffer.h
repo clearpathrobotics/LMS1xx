@@ -80,7 +80,7 @@ public:
     {
       // Start of message found, ahead of the start of buffer. Therefore shift the buffer back.
       //printf("Shifting buffer, dropping %ld bytes, %ld bytes remain.",
-              (start_of_message - buffer_), total_length_ - (start_of_message - buffer_));
+      //        (start_of_message - buffer_), total_length_ - (start_of_message - buffer_));
       shiftBuffer(start_of_message);
     }
 

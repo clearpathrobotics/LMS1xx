@@ -49,47 +49,48 @@ LMS1xx_node::LMS1xx_node(rclcpp::NodeOptions options) : Node("LMS1xx_node", opti
 
 void LMS1xx_node::connect_lidar()
 {
-  RCLCPP_INFO(this->get_logger(), "Connecting to Lidar");
-  laser_.connect(host_, port_);
-
-  if (!laser_.isConnected())
-  {
-    //Attempt to connect to the lidar 5 times before giving up
+  do {
     RCLCPP_INFO(this->get_logger(), "Connecting to Lidar");
-    
-    while (!laser_.isConnected())
+    laser_.connect(host_, port_);
+
+    const int MAX_ATTEMPTS = 100;
+
+    if (!laser_.isConnected())
     {
-      laser_.connect(host_, port_);
-
-      RCLCPP_WARN(this->get_logger(), "Unable to connect, retrying.");
-
-      if (reconnect_timeout_ > 5)
-      {
-        RCLCPP_FATAL(this->get_logger(),
-                     "Unable to connect to Lidar "
-                     "after 5 attempts!");
-        return;
-      }
-      else
-      {
-        reconnect_timeout_++;
-      }
+      //Attempt to connect to the lidar a couple of times before giving up
+      RCLCPP_INFO(this->get_logger(), "Connecting to Lidar");
       
-      // timer
-      rclcpp::sleep_for(std::chrono::seconds(5));      
+      while (!laser_.isConnected())
+      {
+        laser_.connect(host_, port_);
+
+        RCLCPP_WARN(this->get_logger(), "Unable to connect, retrying (%d/%d).", reconnect_timeout_, MAX_ATTEMPTS);
+
+        if (reconnect_timeout_ > MAX_ATTEMPTS)
+        {
+          RCLCPP_FATAL(this->get_logger(),
+                      "Unable to connect to Lidar "
+                      "after %d attempts!", MAX_ATTEMPTS);
+          return;
+        }
+        else
+        {
+          reconnect_timeout_++;
+        }
+
+        // timer
+        rclcpp::sleep_for(std::chrono::seconds(5));      
+      }
     }
-    return;
-  }
-  RCLCPP_INFO(this->get_logger(), "Logging in to laser.");
-  laser_.login();
-  cfg_ = laser_.getScanCfg();
-  outputRange_ = laser_.getScanOutputRange();
+    RCLCPP_INFO(this->get_logger(), "Logging in to laser.");
+    laser_.login();
+    cfg_ = laser_.getScanCfg();
+    outputRange_ = laser_.getScanOutputRange();
 
-  RCLCPP_INFO(this->get_logger(), "Connected to laser.");
-  construct_scan();
-  get_measurements();
+    RCLCPP_INFO(this->get_logger(), "Connected to laser.");
+    construct_scan();
+  } while (get_measurements());
 }
-
 
 void LMS1xx_node::construct_scan()
 {
@@ -120,7 +121,7 @@ void LMS1xx_node::construct_scan()
                             (cfg_.scanningFrequency / 100.0);
 }
 
-void LMS1xx_node::get_measurements()
+bool LMS1xx_node::get_measurements()
 {
   dataCfg_.outputChannel = 1;
   dataCfg_.remission = true;
@@ -148,7 +149,7 @@ void LMS1xx_node::get_measurements()
                  "Laser not ready. Retrying "
                  "initialization.");
     laser_.disconnect();
-    return;
+    return true;
   }
 
   RCLCPP_INFO(this->get_logger(), "Starting device.");
@@ -189,12 +190,14 @@ void LMS1xx_node::get_measurements()
       RCLCPP_ERROR(this->get_logger(),
                    "Laser timed out on delivering scan, "
                    "attempting to reinitialize.");
-      break;
+      return true;
     }
   }
   laser_.scanContinous(0);
   laser_.stopMeas();
   laser_.disconnect();
+
+  return false;
 }
 
 void LMS1xx_node::publish_scan()

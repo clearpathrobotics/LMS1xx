@@ -55,8 +55,10 @@ class LMS1xx_node : public rclcpp::Node
   /**
     * @brief get measurements from the lidar after it has 
     * been setup properly
+    * 
+    * returns: if it should reconnect
     */
-  void get_measurements();
+  bool get_measurements();
 
   /**
     * @brief publishes scan messages

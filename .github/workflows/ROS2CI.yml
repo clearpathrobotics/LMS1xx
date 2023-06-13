@@ -19,6 +19,7 @@ jobs:
         id: action_ros_ci_step
         with:
           target-ros2-distro: humble
-          package-name: flir_spinnaker_ros2
+          package-name: lms1xx
+          import-token: ${{ secrets.GITHUB_TOKEN }}
           vcs-repo-file-url: depends.repos
           skip-tests: true

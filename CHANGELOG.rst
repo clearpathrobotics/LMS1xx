@@ -2,6 +2,24 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed TravisCI badge.
+* Fixed CMakeLists.txt finding deleted packages
+* Fixed formatting issues and dependencies
+* Update ROS2CI.yml
+* Create ROS2CI.yml
+* Create depends.repos
+* Improvements on connecting to lidars
+* add back sprintf but dont printf
+* comment out sprintf
+* Fix min max angle
+* Fix qos for gazebo simulation
+* Make gazebo simulation work
+* Add humble support for Husky LMS_111 lidars
+* migration to ros2 foxy
+* Contributors: Daniel Duran-Rojas, Fredrik, SRai22, Samuel Lindgren, Tony Baltovski, fazzrazz
+
 0.3.0 (2021-01-24)
 ------------------
 * Changed shebang to python3.

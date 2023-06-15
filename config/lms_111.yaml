@@ -1,0 +1,6 @@
+lms1xx:
+  ros__parameters:
+    frame_id: laser_link
+    host: 192.168.131.20
+    port: 2111
+    publish_min_range_as_inf: false

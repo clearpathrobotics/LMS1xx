@@ -2,6 +2,7 @@
  * lms_buffer.h
  *
  *  Author: Mike Purvis <mpurvis@clearpathrobotics.com>
+ *  Author: Shravan S Rai <shravansomashekara.rai@gmail.com>
  ***************************************************************************
  *   This library is free software; you can redistribute it and/or         *
  *   modify it under the terms of the GNU Lesser General Public            *
@@ -23,19 +24,15 @@
 #ifndef LMS1XX_LMS_BUFFER_H_
 #define LMS1XX_LMS_BUFFER_H_
 
-#include "console_bridge/console.h"
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+
 
 #define LMS_BUFFER_SIZE 50000
 #define LMS_STX 0x02
 #define LMS_ETX 0x03
 
-#define logWarn CONSOLE_BRIDGE_logWarn
-#define logError CONSOLE_BRIDGE_logError
-#define logDebug CONSOLE_BRIDGE_logDebug
-#define logInform CONSOLE_BRIDGE_logInform
 
 class LMSBuffer
 {
@@ -51,12 +48,11 @@ public:
     if (ret > 0)
     {
       total_length_ += ret;
-      logDebug("Read %d bytes from fd, total length is %d.", ret, total_length_);
+      //printf("Read %d bytes from fd, total length is %d.", ret, total_length_);
     }
     else
     {
-
-      logWarn("Buffer read() returned error.");
+      //printf("Buffer read() returned error.");
     }
   }
 
@@ -65,7 +61,7 @@ public:
     if (total_length_ == 0)
     {
       // Buffer is empty, no scan data present.
-      logDebug("Empty buffer, nothing to return.");
+      //printf("Empty buffer, nothing to return.");
       return NULL;
     }
 
@@ -76,14 +72,14 @@ public:
     if (start_of_message == NULL)
     {
       // None found, buffer reset.
-      logWarn("No STX found, dropping %d bytes from buffer.", total_length_);
+      //printf("No STX found, dropping %d bytes from buffer.", total_length_);
       total_length_ = 0;
     }
     else if (buffer_ != start_of_message)
     {
       // Start of message found, ahead of the start of buffer. Therefore shift the buffer back.
-      logWarn("Shifting buffer, dropping %d bytes, %d bytes remain.",
-              (start_of_message - buffer_), total_length_ - (start_of_message - buffer_));
+      //printf("Shifting buffer, dropping %ld bytes, %ld bytes remain.",
+      //        (start_of_message - buffer_), total_length_ - (start_of_message - buffer_));
       shiftBuffer(start_of_message);
     }
 
@@ -92,7 +88,7 @@ public:
     if (end_of_first_message_ == NULL)
     {
       // No end of message found, therefore no message to parse and return.
-      logDebug("No ETX found, nothing to return.");
+      //printf("No ETX found, nothing to return.");
       return NULL;
     }
 

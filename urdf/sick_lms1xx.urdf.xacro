@@ -43,7 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <!-- Origin of this mesh is the focal point of the LIDAR. -->
-          <mesh filename="package://lms1xx/meshes/sick-lms1xx.dae" />
+          <mesh filename="file://$(find lms1xx)/meshes/sick-lms1xx.dae" />
         </geometry>
       </visual>
       <collision>
@@ -80,12 +80,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <stddev>0.001</stddev>
           </noise>
         </ray>
-        <plugin name="gazebo_ros_laser" filename="libgazebo_ros_laser.so">
-          <topicName>${topic}</topicName>
-          <frameName>${frame}</frameName>
-          <robotNamespace>${robot_namespace}</robotNamespace>
+        <plugin name="${frame}_scan" filename="libgazebo_ros_ray_sensor.so">
+          <ros>
+            <remapping>~/out:=${topic}</remapping>
+            <qos>
+              <topic name="${topic}">
+                  <publisher>
+                      <reliability>best_effort</reliability>
+                  </publisher>
+              </topic>
+            </qos>
+          </ros>
+          <frame_name>${frame}</frame_name>
+          <robot_namespace>${robot_namespace}</robot_namespace>
+          <output_type>sensor_msgs/LaserScan</output_type>
         </plugin>
       </sensor>
     </gazebo>
+
   </xacro:macro>
 </robot>

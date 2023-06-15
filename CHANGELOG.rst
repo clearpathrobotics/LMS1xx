@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2023-06-15)
+------------------
 * Removed TravisCI badge.
 * Fixed CMakeLists.txt finding deleted packages
 * Fixed formatting issues and dependencies

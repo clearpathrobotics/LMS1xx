@@ -22,14 +22,15 @@
  *                                                                         *
  ***************************************************************************/
 
+#include "LMS1xx/LMS1xx.h"
+#include "LMS1xx/LMS1xx_node.hpp"
+
+#include <chrono>
 #include <csignal>
 #include <cstdio>
 #include <limits>
-#include <string>
-#include <chrono>
 #include <memory>
-#include "LMS1xx/LMS1xx.h"
-#include "LMS1xx/LMS1xx_node.hpp"
+#include <string>
 
 #define DEG2RAD M_PI/180.0
 
@@ -99,11 +100,11 @@ void LMS1xx_node::construct_scan()
   scan_msg_.range_max = 20.0;
   scan_msg_.scan_time = 100.0 / cfg_.scanningFrequency;
   scan_msg_.angle_increment =
-      (double)outputRange_.angleResolution / 10000.0 * DEG2RAD;
+      static_cast<double>(outputRange_.angleResolution) / 10000.0 * DEG2RAD;
   
   scan_msg_.angle_min =
-        ((double)cfg_.startAngle / 10000.0) * DEG2RAD - M_PI / 2;
-  scan_msg_.angle_max = (((double)cfg_.stopAngle) / 10000.0) * DEG2RAD - M_PI / 2;
+        (static_cast<double>(cfg_.startAngle) / 10000.0) * DEG2RAD - M_PI / 2;
+  scan_msg_.angle_max = ((static_cast<double>(cfg_.stopAngle)) / 10000.0) * DEG2RAD - M_PI / 2;
 
   int angle_range = outputRange_.stopAngle - outputRange_.startAngle;
   int num_values = angle_range/ outputRange_.angleResolution;

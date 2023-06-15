@@ -27,8 +27,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
-#include <cstdint>
-#include <cstdio>
+
 
 #define LMS_BUFFER_SIZE 50000
 #define LMS_STX 0x02

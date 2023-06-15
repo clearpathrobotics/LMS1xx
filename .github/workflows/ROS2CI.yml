@@ -21,5 +21,4 @@ jobs:
           target-ros2-distro: humble
           package-name: lms1xx
           import-token: ${{ secrets.GITHUB_TOKEN }}
-          vcs-repo-file-url: depends.repos
           skip-tests: true

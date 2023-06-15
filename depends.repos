@@ -1,5 +1,0 @@
-repositories:
-  vcstool:
-    type: git
-    url: git@github.com:RoverRobotics-forks/serial-ros2.git
-    version: master

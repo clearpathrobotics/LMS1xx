@@ -19,17 +19,29 @@
 
 namespace LMS1xx_node
 {
+
+enum LMS1xxNodeState
+{
+  CONNECTING = 0,
+  TIMEOUT = 1,
+  MEASURING = 2,
+  ERROR = 3
+};
+
+static constexpr auto MAX_CONNECT_ATTEMPTS = 100;
+
 class LMS1xx_node : public rclcpp::Node
 {
   public:
-  explicit LMS1xx_node(rclcpp::NodeOptions options);
-
-  /**
-    * @brief connect to the Sick LMS1xx lidar
-    */
-  void connect_lidar();
+  explicit LMS1xx_node();
 
   private:
+  // Node state
+  LMS1xxNodeState state_;
+  rclcpp::TimerBase::SharedPtr spin_timer_;
+  rclcpp::TimerBase::SharedPtr timeout_timer_;
+  bool timed_out_;
+
   // laser data
   LMS1xx laser_;
   scanCfg cfg_;
@@ -46,6 +58,12 @@ class LMS1xx_node : public rclcpp::Node
 
   // publishers
   rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laserscan_pub_;
+
+  /**
+  * @brief connect to the Sick LMS1xx lidar
+  */
+  bool connect_lidar();
+
   /**
     * @brief construct a scan message based on the
     * configuration of the sick lidar
@@ -62,14 +80,29 @@ class LMS1xx_node : public rclcpp::Node
   bool get_measurements();
 
   /**
+    * @brief Start device and being scanning.
+    */
+  void start_measurements();
+
+  /**
+    * @brief Stop scanning and disconnect.
+    */
+  void stop_measurements();
+
+  /**
     * @brief publishes scan messages
     */
-  void publish_scan();
+  void publish_scan(scanData& data);
 
   /**
     * @brief publishes cloud messages
     */
   void publish_cloud();
+
+  /**
+    * @brief Main spin. Runs state machine.
+    */
+  void spin_once();
 };
 
 }  // namespace LMS1xx_node

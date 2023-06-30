@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>lms1xx</name>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <description>The lms1xx package contains a basic ROS 2 driver for the SICK LMS1xx line of LIDARs.</description>
 
   <author>Konrad Banachowicz</author>

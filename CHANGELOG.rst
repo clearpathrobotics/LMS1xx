@@ -2,8 +2,8 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2023-06-30)
+------------------
 * Added statemachine to prevent driver from blocking executor.
 * Contributors: Roni Kreinin
 

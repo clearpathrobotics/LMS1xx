@@ -2,6 +2,11 @@
 Changelog for package LMS1xx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added statemachine to prevent driver from blocking executor.
+* Contributors: Roni Kreinin
+
 1.0.0 (2023-06-15)
 ------------------
 * Removed TravisCI badge.
